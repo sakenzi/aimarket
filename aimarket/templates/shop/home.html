@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Главная — SmartShop{% endblock %}
+
+{% block content %}
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar__title">Категории</div>
+    <ul class="cat">
+      {% for c in categories %}
+        <li class="cat__item"><a class="cat__link" href="#">{{ c }}</a></li>
+      {% endfor %}
+    </ul>
+
+    <div class="sidebar__box">
+      <div class="sidebar__title">Акции</div>
+      <div class="promo">
+        <div class="promo__badge">0-0-12</div>
+        <div class="promo__text">Рассрочка на популярные товары</div>
+      </div>
+    </div>
+  </aside>
+
+  <section class="content">
+    <div class="hero">
+      <div class="hero__left">
+        <div class="hero__tag">Маркетплейс</div>
+        <h1 class="hero__title">Покупай быстро. Рекомендации — умно.</h1>
+        <p class="hero__desc">Моковый экран: категории слева, поиск сверху, карточки товаров.</p>
+        <div class="hero__actions">
+          <a class="btn" href="{% url 'register' %}">Начать</a>
+          <a class="btn btn--ghost" href="#grid">Смотреть товары</a>
+        </div>
+      </div>
+      <div class="hero__right">
+        <div class="hero__card">
+          <div class="hero__cardTitle">Рекомендации</div>
+          <div class="muted">Скоро тут будет AI-блок (похожие / персональные / популярные).</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sectionTitle" id="grid">Популярное</div>
+
+    <div class="grid">
+      {% for p in products %}
+      <article class="card">
+        <div class="card__img">
+          <div class="imgStub">Фото</div>
+        </div>
+        <div class="card__body">
+          <div class="card__tag">{{ p.tag }}</div>
+          <div class="card__title">{{ p.title }}</div>
+          <div class="card__price">{{ p.price }}</div>
+          <div class="card__meta">⭐ {{ p.rating }} · {{ p.reviews }} отзывов</div>
+          <button class="card__btn" type="button">В корзину</button>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+</div>
+{% endblock %}

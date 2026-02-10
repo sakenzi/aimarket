@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Войти — SmartShop{% endblock %}
+
+{% block content %}
+<div class="authWrap">
+  <div class="authCard">
+    <h2>Войти</h2>
+    <p class="muted">Войди, чтобы получать персональные рекомендации.</p>
+
+    <form method="post" class="form">
+      {% csrf_token %}
+      <label class="field">
+        <span>Логин</span>
+        <input name="username" placeholder="например: saken" required>
+      </label>
+
+      <label class="field">
+        <span>Пароль</span>
+        <input name="password" type="password" placeholder="••••••••" required>
+      </label>
+
+      <button class="btn w100" type="submit">Войти</button>
+    </form>
+
+    <div class="authHint">
+      Нет аккаунта? <a href="{% url 'register' %}">Регистрация</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

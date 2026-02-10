@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Регистрация — SmartShop{% endblock %}
+
+{% block content %}
+<div class="authWrap">
+  <div class="authCard">
+    <h2>Регистрация</h2>
+    <p class="muted">Создай аккаунт за минуту.</p>
+
+    <form method="post" class="form">
+      {% csrf_token %}
+
+      <label class="field">
+        <span>Логин</span>
+        <input name="username" placeholder="например: saken" required>
+      </label>
+
+      <label class="field">
+        <span>Email</span>
+        <input name="email" type="email" placeholder="you@mail.com">
+      </label>
+
+      <label class="field">
+        <span>Пароль</span>
+        <input name="password1" type="password" placeholder="••••••••" required>
+      </label>
+
+      <label class="field">
+        <span>Повтори пароль</span>
+        <input name="password2" type="password" placeholder="••••••••" required>
+      </label>
+
+      <button class="btn w100" type="submit">Создать аккаунт</button>
+    </form>
+
+    <div class="authHint">
+      Уже есть аккаунт? <a href="{% url 'login' %}">Войти</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

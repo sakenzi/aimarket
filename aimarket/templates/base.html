@@ -1,0 +1,36 @@
+{% load static %}
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>{% block title %}SmartShop{% endblock %}</title>
+
+  <link rel="stylesheet" href="{% static 'css/main.css' %}">
+</head>
+<body>
+
+{% include "partials/header.html" %}
+
+{% if messages %}
+  <div class="container">
+    {% for m in messages %}
+      <div class="alert">{{ m }}</div>
+    {% endfor %}
+  </div>
+{% endif %}
+
+<main class="container main">
+  {% block content %}{% endblock %}
+</main>
+
+<footer class="footer">
+  <div class="container footer__row">
+    <div>© {{ now|date:"Y" }} SmartShop</div>
+    <div class="muted">Моковый маркетплейс</div>
+  </div>
+</footer>
+
+<script src="{% static 'js/main.js' %}"></script>
+</body>
+</html>

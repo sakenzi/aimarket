@@ -1,0 +1,20 @@
+<header class="topbar">
+  <div class="container topbar__row">
+    <a class="logo" href="/">SmartShop</a>
+
+    <form class="search" action="#" method="get">
+      <input class="search__input" type="text" placeholder="Поиск товаров, брендов, категорий">
+      <button class="search__btn" type="submit">Найти</button>
+    </form>
+
+    <nav class="nav">
+      {% if user.is_authenticated %}
+        <span class="nav__user">👤 {{ user.username }}</span>
+        <a class="nav__link" href="{% url 'logout' %}">Выйти</a>
+      {% else %}
+        <a class="nav__link" href="{% url 'login' %}">Войти</a>
+        <a class="nav__btn" href="{% url 'register' %}">Регистрация</a>
+      {% endif %}
+    </nav>
+  </div>
+</header>
