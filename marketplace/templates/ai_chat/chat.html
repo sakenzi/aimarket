@@ -1,0 +1,303 @@
+{% extends "base/base.html" %}
+
+{% block title %}AI Помощник{% endblock %}
+
+{% block extra_head %}
+<style>
+.chat-msg { animation: slideIn 0.3s ease; }
+@keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.typing-dot { animation: blink 1.2s infinite; }
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes blink { 0%, 60%, 100% { opacity: 0.3; } 30% { opacity: 1; } }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 py-6 h-[calc(100vh-180px)] flex gap-6">
+
+    <!-- Sidebar: Chat History -->
+    {% if user.is_authenticated and sessions %}
+    <aside class="w-64 shrink-0 hidden lg:flex flex-col">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 flex-1 overflow-hidden flex flex-col">
+            <div class="p-4 border-b border-gray-100 flex justify-between items-center">
+                <h3 class="font-black text-gray-900 text-sm">История чатов</h3>
+                <button onclick="newChat()" class="text-yellow-600 hover:text-yellow-700 text-xs font-semibold transition">+ Новый</button>
+            </div>
+            <div class="flex-1 overflow-y-auto p-2 space-y-1">
+                {% for s in sessions %}
+                <button onclick="loadSession({{ s.id }})"
+                        class="w-full text-left px-3 py-2.5 rounded-xl hover:bg-yellow-50 transition text-sm {% if s.id == session.id %}bg-yellow-100 font-semibold{% endif %}">
+                    <p class="text-gray-800 truncate">{{ s.title }}</p>
+                    <p class="text-gray-400 text-xs mt-0.5">{{ s.updated_at|date:"d.m H:i" }}</p>
+                </button>
+                {% endfor %}
+            </div>
+        </div>
+    </aside>
+    {% endif %}
+
+    <!-- Main Chat -->
+    <div class="flex-1 flex flex-col bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+        <!-- Header -->
+        <div class="p-4 border-b border-gray-100 flex items-center justify-between bg-gradient-to-r from-yellow-400 to-amber-300">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-gray-900 rounded-xl flex items-center justify-center text-yellow-400 font-black text-lg">AI</div>
+                <div>
+                    <p class="font-black text-gray-900 text-sm">YMarket AI Помощник</p>
+                    <div class="flex items-center gap-1.5">
+                        <div class="w-2 h-2 rounded-full {% if ollama_available %}bg-green-500{% else %}bg-red-400{% endif %}"></div>
+                        <span class="text-xs text-gray-700 font-medium">
+                            {% if ollama_available %}Онлайн{% else %}Ограниченный режим{% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="newChat()" class="bg-gray-900 text-yellow-400 text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-gray-700 transition">
+                    + Новый чат
+                </button>
+            </div>
+        </div>
+
+        <!-- Messages -->
+        <div class="flex-1 overflow-y-auto p-5 space-y-5" id="messages-area">
+            {% if not messages %}
+            <!-- Welcome -->
+            <div class="text-center py-12">
+                <div class="text-6xl mb-4">🤖</div>
+                <h2 class="text-2xl font-black text-gray-900 mb-2">Привет! Я AI-помощник</h2>
+                <p class="text-gray-500 text-sm mb-8">Помогу найти товары, расскажу о характеристиках и дам рекомендации</p>
+                <div class="flex flex-wrap justify-center gap-2">
+                    {% for suggestion in "Найти смартфон до 30000₽,Лучшие ноутбуки для работы,Подобрать подарок на день рождения,Сравнить наушники,Что популярно сейчас?" %}
+                    <button onclick="setMessage('{{ suggestion }}')"
+                            class="bg-yellow-50 hover:bg-yellow-100 text-gray-700 text-sm px-4 py-2 rounded-xl transition border border-yellow-200 hover:border-yellow-300">
+                        {{ suggestion }}
+                    </button>
+                    {% endfor %}
+                </div>
+            </div>
+            {% else %}
+            {% for msg in messages %}
+            <div class="chat-msg flex {% if msg.role == 'user' %}justify-end{% else %}justify-start{% endif %}">
+                {% if msg.role == 'assistant' %}
+                <div class="w-8 h-8 bg-gray-900 rounded-xl flex items-center justify-center text-yellow-400 font-bold text-xs shrink-0 mt-1 mr-2">AI</div>
+                {% endif %}
+                <div class="max-w-lg {% if msg.role == 'user' %}bg-yellow-400 text-gray-900{% else %}bg-gray-50 text-gray-800 border border-gray-100{% endif %} rounded-2xl px-5 py-3.5 text-sm leading-relaxed">
+                    {{ msg.content|linebreaks }}
+                </div>
+                {% if msg.role == 'user' %}
+                <div class="w-8 h-8 bg-yellow-500 rounded-xl flex items-center justify-center text-white font-bold text-xs shrink-0 mt-1 ml-2">Я</div>
+                {% endif %}
+            </div>
+            {% endfor %}
+            {% endif %}
+
+            <!-- Typing indicator (hidden) -->
+            <div id="typing-indicator" class="hidden flex items-center gap-2">
+                <div class="w-8 h-8 bg-gray-900 rounded-xl flex items-center justify-center text-yellow-400 font-bold text-xs">AI</div>
+                <div class="bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4">
+                    <div class="flex gap-1.5">
+                        <div class="w-2 h-2 bg-gray-400 rounded-full typing-dot"></div>
+                        <div class="w-2 h-2 bg-gray-400 rounded-full typing-dot"></div>
+                        <div class="w-2 h-2 bg-gray-400 rounded-full typing-dot"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Suggested products area -->
+        <div id="products-area" class="hidden border-t border-gray-100 p-4 bg-gray-50">
+            <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Найденные товары</p>
+            <div id="products-list" class="flex gap-3 overflow-x-auto pb-1"></div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="border-t border-gray-100 p-4 bg-white">
+            <div class="flex gap-3 items-end">
+                <textarea
+                    id="message-input"
+                    placeholder="Спросите что-нибудь о товарах... (Enter для отправки)"
+                    class="flex-1 px-4 py-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-yellow-400 outline-none resize-none min-h-[48px] max-h-32 transition"
+                    rows="1"
+                    onkeydown="handleKeyDown(event)"
+                    oninput="autoResize(this)"
+                ></textarea>
+                <button
+                    id="send-btn"
+                    onclick="sendMessage()"
+                    class="bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold px-5 py-3 rounded-xl transition disabled:opacity-50 shrink-0 h-12"
+                >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                    </svg>
+                </button>
+            </div>
+            <p class="text-xs text-gray-400 mt-2 text-center">AI работает на Ollama · Ответы генерируются локально · Не является финансовым советом</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const CSRF = document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '';
+let currentSessionId = {{ session.id }};
+const messagesArea = document.getElementById('messages-area');
+
+function scrollToBottom() {
+    messagesArea.scrollTop = messagesArea.scrollHeight;
+}
+scrollToBottom();
+
+function setMessage(text) {
+    document.getElementById('message-input').value = text;
+    document.getElementById('message-input').focus();
+}
+
+function handleKeyDown(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+    }
+}
+
+function autoResize(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 128) + 'px';
+}
+
+function addMessage(role, content) {
+    const isUser = role === 'user';
+    const div = document.createElement('div');
+    div.className = `chat-msg flex ${isUser ? 'justify-end' : 'justify-start'}`;
+    div.innerHTML = `
+        ${!isUser ? '<div class="w-8 h-8 bg-gray-900 rounded-xl flex items-center justify-center text-yellow-400 font-bold text-xs shrink-0 mt-1 mr-2">AI</div>' : ''}
+        <div class="max-w-lg ${isUser ? 'bg-yellow-400 text-gray-900' : 'bg-gray-50 text-gray-800 border border-gray-100'} rounded-2xl px-5 py-3.5 text-sm leading-relaxed whitespace-pre-wrap">${content}</div>
+        ${isUser ? '<div class="w-8 h-8 bg-yellow-500 rounded-xl flex items-center justify-center text-white font-bold text-xs shrink-0 mt-1 ml-2">Я</div>' : ''}
+    `;
+    document.getElementById('typing-indicator').before(div);
+    scrollToBottom();
+}
+
+function showProducts(products) {
+    if (!products || !products.length) {
+        document.getElementById('products-area').classList.add('hidden');
+        return;
+    }
+    const list = document.getElementById('products-list');
+    list.innerHTML = products.map(p => `
+        <a href="/product/${p.slug}/" class="shrink-0 flex flex-col bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-md transition w-40">
+            ${p.image ? `<img src="${p.image}" class="w-full h-28 object-cover">` : '<div class="w-full h-28 bg-yellow-50 flex items-center justify-center text-3xl">📦</div>'}
+            <div class="p-2">
+                <p class="text-xs font-semibold text-gray-800 line-clamp-2 leading-tight">${p.name}</p>
+                <p class="text-sm font-black text-gray-900 mt-1">${parseInt(p.price).toLocaleString('ru')}₽</p>
+                ${p.rating > 0 ? `<p class="text-xs text-yellow-600 mt-0.5">⭐ ${p.rating}</p>` : ''}
+            </div>
+        </a>
+    `).join('');
+    document.getElementById('products-area').classList.remove('hidden');
+}
+
+async function sendMessage() {
+    const input = document.getElementById('message-input');
+    const message = input.value.trim();
+    if (!message) return;
+
+    const btn = document.getElementById('send-btn');
+    input.value = '';
+    input.style.height = 'auto';
+    btn.disabled = true;
+
+    addMessage('user', message);
+
+    // Clear welcome screen if present
+    const welcome = messagesArea.querySelector('.text-center.py-12');
+    if (welcome) welcome.remove();
+
+    // Show typing
+    document.getElementById('typing-indicator').classList.remove('hidden');
+    scrollToBottom();
+
+    try {
+        const res = await fetch('{% url "ai_chat:send" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': CSRF,
+            },
+            body: JSON.stringify({ message, session_id: currentSessionId }),
+        });
+        const data = await res.json();
+
+        document.getElementById('typing-indicator').classList.add('hidden');
+
+        if (data.error) {
+            addMessage('assistant', '❌ ' + data.error);
+        } else {
+            addMessage('assistant', data.response);
+            showProducts(data.products);
+            if (data.session_id) currentSessionId = data.session_id;
+        }
+    } catch (err) {
+        document.getElementById('typing-indicator').classList.add('hidden');
+        addMessage('assistant', '⚠️ Не удалось получить ответ. Попробуйте ещё раз.');
+    } finally {
+        btn.disabled = false;
+        input.focus();
+    }
+}
+
+async function newChat() {
+    const res = await fetch('{% url "ai_chat:new_session" %}', {
+        method: 'POST',
+        headers: { 'X-CSRFToken': CSRF },
+    });
+    const data = await res.json();
+    currentSessionId = data.session_id;
+    messagesArea.innerHTML = `
+        <div class="text-center py-12">
+            <div class="text-6xl mb-4">🤖</div>
+            <h2 class="text-2xl font-black text-gray-900 mb-2">Новый чат начат!</h2>
+            <p class="text-gray-500 text-sm">Спросите меня о товарах</p>
+        </div>
+        <div id="typing-indicator" class="hidden flex items-center gap-2">
+            <div class="w-8 h-8 bg-gray-900 rounded-xl flex items-center justify-center text-yellow-400 font-bold text-xs">AI</div>
+            <div class="bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4">
+                <div class="flex gap-1.5">
+                    <div class="w-2 h-2 bg-gray-400 rounded-full typing-dot"></div>
+                    <div class="w-2 h-2 bg-gray-400 rounded-full typing-dot"></div>
+                    <div class="w-2 h-2 bg-gray-400 rounded-full typing-dot"></div>
+                </div>
+            </div>
+        </div>
+    `;
+    document.getElementById('products-area').classList.add('hidden');
+}
+
+async function loadSession(sessionId) {
+    const res = await fetch(`/ai-chat/session/${sessionId}/`);
+    const data = await res.json();
+    currentSessionId = sessionId;
+    const indicator = `
+        <div id="typing-indicator" class="hidden flex items-center gap-2">
+            <div class="w-8 h-8 bg-gray-900 rounded-xl flex items-center justify-center text-yellow-400 font-bold text-xs">AI</div>
+            <div class="bg-gray-50 border border-gray-100 rounded-2xl px-5 py-4">
+                <div class="flex gap-1.5">
+                    <div class="w-2 h-2 bg-gray-400 rounded-full typing-dot"></div>
+                    <div class="w-2 h-2 bg-gray-400 rounded-full typing-dot"></div>
+                    <div class="w-2 h-2 bg-gray-400 rounded-full typing-dot"></div>
+                </div>
+            </div>
+        </div>`;
+    messagesArea.innerHTML = data.messages.map(m => `
+        <div class="chat-msg flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}">
+            ${m.role !== 'user' ? '<div class="w-8 h-8 bg-gray-900 rounded-xl flex items-center justify-center text-yellow-400 font-bold text-xs shrink-0 mt-1 mr-2">AI</div>' : ''}
+            <div class="max-w-lg ${m.role === 'user' ? 'bg-yellow-400 text-gray-900' : 'bg-gray-50 text-gray-800 border border-gray-100'} rounded-2xl px-5 py-3.5 text-sm leading-relaxed whitespace-pre-wrap">${m.content}</div>
+            ${m.role === 'user' ? '<div class="w-8 h-8 bg-yellow-500 rounded-xl flex items-center justify-center text-white font-bold text-xs shrink-0 mt-1 ml-2">Я</div>' : ''}
+        </div>
+    `).join('') + indicator;
+    scrollToBottom();
+}
+</script>
+{% endblock %}

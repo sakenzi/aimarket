@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="ru" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Marketplace{% endblock %} — YMarket</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#fefce8',
+                            100: '#fef9c3',
+                            200: '#fef08a',
+                            300: '#fde047',
+                            400: '#facc15',
+                            500: '#eab308',
+                            600: '#ca8a04',
+                            700: '#a16207',
+                            800: '#854d0e',
+                            900: '#713f12',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .form-input {
+            @apply w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition;
+        }
+        .btn-primary {
+            @apply bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold px-6 py-2.5 rounded-lg transition-all duration-200 inline-flex items-center gap-2 shadow-sm hover:shadow-md;
+        }
+        .btn-secondary {
+            @apply bg-white hover:bg-gray-50 text-gray-700 font-semibold px-6 py-2.5 rounded-lg border border-gray-300 transition-all duration-200 inline-flex items-center gap-2;
+        }
+        .card {
+            @apply bg-white rounded-2xl shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden;
+        }
+        .star-filled { color: #eab308; }
+        .star-empty { color: #d1d5db; }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-gray-50 text-gray-900 min-h-screen flex flex-col">
+
+<!-- Top Bar -->
+<div class="bg-gray-900 text-gray-300 text-xs py-1.5 px-4">
+    <div class="max-w-7xl mx-auto flex justify-between items-center">
+        <span>📦 Бесплатная доставка от 1000₽</span>
+        <div class="flex gap-4">
+            <a href="tel:+78001234567" class="hover:text-yellow-400 transition">☎ 8-800-123-45-67</a>
+            <span>Пн-Вс 9:00–21:00</span>
+        </div>
+    </div>
+</div>
+
+<!-- Header -->
+<header class="bg-yellow-400 shadow-md sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-3">
+        <div class="flex items-center gap-4">
+            <!-- Logo -->
+            <a href="{% url 'products:home' %}" class="flex items-center gap-2 shrink-0">
+                <div class="bg-gray-900 text-yellow-400 font-black text-xl w-10 h-10 rounded-xl flex items-center justify-center">Y</div>
+                <span class="font-black text-2xl text-gray-900 hidden sm:block">Market</span>
+            </a>
+
+            <!-- Search -->
+            <form action="{% url 'products:catalog' %}" method="get" class="flex-1 max-w-2xl relative">
+                <input
+                    type="text"
+                    name="q"
+                    value="{{ request.GET.q }}"
+                    placeholder="Найти товары, бренды, категории..."
+                    class="w-full pl-5 pr-14 py-3 rounded-xl bg-white text-gray-900 outline-none text-sm shadow-inner"
+                    id="search-input"
+                    autocomplete="off"
+                >
+                <button type="submit" class="absolute right-3 top-1/2 -translate-y-1/2 bg-gray-900 text-yellow-400 p-2 rounded-lg hover:bg-gray-700 transition">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                    </svg>
+                </button>
+                <!-- Suggestions dropdown -->
+                <div id="search-suggestions" class="absolute top-full left-0 right-0 bg-white shadow-xl rounded-xl mt-1 hidden z-50 max-h-64 overflow-y-auto"></div>
+            </form>
+
+            <!-- Actions -->
+            <div class="flex items-center gap-2 shrink-0">
+                <!-- AI Chat -->
+                <a href="{% url 'ai_chat:chat' %}" class="flex flex-col items-center gap-0.5 text-gray-900 hover:text-gray-700 p-2 rounded-xl hover:bg-yellow-300 transition" title="AI Помощник">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                    </svg>
+                    <span class="text-xs font-medium hidden sm:block">AI Чат</span>
+                </a>
+
+                <!-- Wishlist -->
+                {% if user.is_authenticated %}
+                <a href="{% url 'products:wishlist' %}" class="flex flex-col items-center gap-0.5 text-gray-900 hover:text-gray-700 p-2 rounded-xl hover:bg-yellow-300 transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+                    </svg>
+                    <span class="text-xs font-medium hidden sm:block">Избранное</span>
+                </a>
+                {% endif %}
+
+                <!-- Cart -->
+                <a href="{% url 'cart:cart' %}" class="flex flex-col items-center gap-0.5 text-gray-900 hover:text-gray-700 p-2 rounded-xl hover:bg-yellow-300 transition relative">
+                    <div class="relative">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/>
+                        </svg>
+                        {% if cart_count %}
+                        <span class="absolute -top-2 -right-2 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold cart-badge">{{ cart_count }}</span>
+                        {% endif %}
+                    </div>
+                    <span class="text-xs font-medium hidden sm:block">Корзина</span>
+                </a>
+
+                <!-- User -->
+                {% if user.is_authenticated %}
+                <div class="relative group">
+                    <button class="flex flex-col items-center gap-0.5 text-gray-900 p-2 rounded-xl hover:bg-yellow-300 transition">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                        </svg>
+                        <span class="text-xs font-medium hidden sm:block">{{ user.first_name|default:"Профиль" }}</span>
+                    </button>
+                    <div class="absolute right-0 top-full mt-1 bg-white shadow-xl rounded-xl w-52 py-2 hidden group-hover:block border border-gray-100 z-50">
+                        <div class="px-4 py-2 border-b border-gray-100">
+                            <p class="text-sm font-semibold text-gray-900">{{ user.get_full_name }}</p>
+                            <p class="text-xs text-gray-500">{{ user.email }}</p>
+                        </div>
+                        <a href="{% url 'users:profile' %}" class="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-sm text-gray-700 transition">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                            Профиль
+                        </a>
+                        <a href="{% url 'orders:list' %}" class="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 text-sm text-gray-700 transition">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                            Мои заказы
+                        </a>
+                        <div class="border-t border-gray-100 mt-1 pt-1">
+                            <a href="{% url 'users:logout' %}" class="flex items-center gap-3 px-4 py-2.5 hover:bg-red-50 text-sm text-red-600 transition">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+                                Выйти
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <a href="{% url 'users:login' %}" class="flex flex-col items-center gap-0.5 text-gray-900 p-2 rounded-xl hover:bg-yellow-300 transition">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/>
+                    </svg>
+                    <span class="text-xs font-medium hidden sm:block">Войти</span>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Categories nav -->
+    <nav class="bg-yellow-500 border-t border-yellow-600">
+        <div class="max-w-7xl mx-auto px-4">
+            <ul class="flex items-center gap-1 overflow-x-auto py-1 scrollbar-hide">
+                <li>
+                    <a href="{% url 'products:catalog' %}" class="whitespace-nowrap px-3 py-1.5 text-sm font-medium text-gray-900 hover:bg-yellow-400 rounded-lg transition flex items-center gap-1.5">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                        Все товары
+                    </a>
+                </li>
+                {% for cat in nav_categories %}
+                <li class="relative group">
+                    <a href="{% url 'products:catalog' %}?category={{ cat.slug }}" class="whitespace-nowrap px-3 py-1.5 text-sm font-medium text-gray-900 hover:bg-yellow-400 rounded-lg transition block">
+                        {{ cat.name }}
+                    </a>
+                    {% if cat.children.all %}
+                    <div class="absolute top-full left-0 bg-white shadow-xl rounded-xl w-52 py-2 hidden group-hover:block z-50 border border-gray-100">
+                        {% for sub in cat.children.all %}
+                        <a href="{% url 'products:catalog' %}?category={{ sub.slug }}" class="block px-4 py-2 text-sm text-gray-700 hover:bg-yellow-50 hover:text-gray-900 transition">
+                            {{ sub.name }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </nav>
+</header>
+
+<!-- Messages -->
+{% if messages %}
+<div class="max-w-7xl mx-auto px-4 pt-4 space-y-2" id="messages-container">
+    {% for message in messages %}
+    <div class="flex items-center gap-3 p-4 rounded-xl text-sm font-medium
+        {% if message.tags == 'success' %}bg-green-50 text-green-800 border border-green-200
+        {% elif message.tags == 'error' %}bg-red-50 text-red-800 border border-red-200
+        {% elif message.tags == 'warning' %}bg-yellow-50 text-yellow-800 border border-yellow-200
+        {% else %}bg-blue-50 text-blue-800 border border-blue-200{% endif %}">
+        {% if message.tags == 'success' %}✅{% elif message.tags == 'error' %}❌{% elif message.tags == 'warning' %}⚠️{% else %}ℹ️{% endif %}
+        {{ message }}
+        <button onclick="this.parentElement.remove()" class="ml-auto opacity-50 hover:opacity-100">✕</button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<!-- Main Content -->
+<main class="flex-1">
+    {% block content %}{% endblock %}
+</main>
+
+<!-- Footer -->
+<footer class="bg-gray-900 text-gray-300 mt-16">
+    <div class="max-w-7xl mx-auto px-4 py-12">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+            <div>
+                <div class="flex items-center gap-2 mb-4">
+                    <div class="bg-yellow-400 text-gray-900 font-black text-xl w-10 h-10 rounded-xl flex items-center justify-center">Y</div>
+                    <span class="font-black text-2xl text-white">Market</span>
+                </div>
+                <p class="text-sm text-gray-400">Крупнейший маркетплейс с миллионами товаров и быстрой доставкой по всей России.</p>
+            </div>
+            <div>
+                <h3 class="font-semibold text-white mb-4">Покупателям</h3>
+                <ul class="space-y-2 text-sm">
+                    <li><a href="{% url 'products:catalog' %}" class="hover:text-yellow-400 transition">Каталог товаров</a></li>
+                    <li><a href="{% url 'cart:cart' %}" class="hover:text-yellow-400 transition">Корзина</a></li>
+                    {% if user.is_authenticated %}
+                    <li><a href="{% url 'orders:list' %}" class="hover:text-yellow-400 transition">Мои заказы</a></li>
+                    {% endif %}
+                    <li><a href="{% url 'ai_chat:chat' %}" class="hover:text-yellow-400 transition">AI Помощник</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="font-semibold text-white mb-4">Компания</h3>
+                <ul class="space-y-2 text-sm">
+                    <li><a href="#" class="hover:text-yellow-400 transition">О нас</a></li>
+                    <li><a href="#" class="hover:text-yellow-400 transition">Партнёрам</a></li>
+                    <li><a href="#" class="hover:text-yellow-400 transition">Вакансии</a></li>
+                    <li><a href="#" class="hover:text-yellow-400 transition">Контакты</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="font-semibold text-white mb-4">Поддержка</h3>
+                <ul class="space-y-2 text-sm">
+                    <li><span class="text-yellow-400 font-semibold">8-800-123-45-67</span></li>
+                    <li class="text-gray-400">Бесплатно, Пн-Вс 9–21</li>
+                    <li><a href="mailto:support@ymarket.ru" class="hover:text-yellow-400 transition">support@ymarket.ru</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="border-t border-gray-800 mt-8 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+            <p class="text-sm text-gray-500">© 2024 YMarket. Все права защищены.</p>
+            <div class="flex gap-4 text-sm text-gray-500">
+                <a href="#" class="hover:text-yellow-400 transition">Политика конфиденциальности</a>
+                <a href="#" class="hover:text-yellow-400 transition">Пользовательское соглашение</a>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- Global Scripts -->
+<script>
+// Search suggestions
+const searchInput = document.getElementById('search-input');
+const suggestionsEl = document.getElementById('search-suggestions');
+let debounceTimer;
+
+if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+        clearTimeout(debounceTimer);
+        const q = e.target.value.trim();
+        if (q.length < 2) { suggestionsEl.classList.add('hidden'); return; }
+        debounceTimer = setTimeout(async () => {
+            const res = await fetch(`/search/suggestions/?q=${encodeURIComponent(q)}`);
+            const data = await res.json();
+            if (!data.suggestions.length) { suggestionsEl.classList.add('hidden'); return; }
+            suggestionsEl.innerHTML = data.suggestions.map(s =>
+                `<a href="/product/${s.slug}/" class="block px-4 py-3 hover:bg-yellow-50 text-sm text-gray-700 border-b border-gray-50 last:border-0 transition">${s.name}</a>`
+            ).join('');
+            suggestionsEl.classList.remove('hidden');
+        }, 300);
+    });
+    document.addEventListener('click', (e) => {
+        if (!searchInput.contains(e.target)) suggestionsEl.classList.add('hidden');
+    });
+}
+
+// Add to cart (AJAX)
+document.addEventListener('submit', async (e) => {
+    const form = e.target;
+    if (!form.classList.contains('add-to-cart-form')) return;
+    e.preventDefault();
+    const formData = new FormData(form);
+    try {
+        const res = await fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-Requested-With': 'XMLHttpRequest', 'X-CSRFToken': formData.get('csrfmiddlewaretoken') }
+        });
+        const data = await res.json();
+        if (data.success) {
+            // Update badge
+            document.querySelectorAll('.cart-badge').forEach(el => {
+                el.textContent = data.cart_count;
+                el.classList.remove('hidden');
+            });
+            showToast(data.message, 'success');
+        }
+    } catch (err) { console.error(err); }
+});
+
+function showToast(msg, type='info') {
+    const toast = document.createElement('div');
+    toast.className = `fixed bottom-6 right-6 z-50 px-6 py-3 rounded-xl shadow-lg font-medium text-sm transition-all transform translate-y-2 opacity-0
+        ${type === 'success' ? 'bg-green-500 text-white' : 'bg-gray-800 text-white'}`;
+    toast.textContent = msg;
+    document.body.appendChild(toast);
+    requestAnimationFrame(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+        setTimeout(() => {
+            toast.classList.add('translate-y-2', 'opacity-0');
+            setTimeout(() => toast.remove(), 300);
+        }, 2500);
+    });
+}
+
+// Auto-dismiss messages
+setTimeout(() => {
+    const container = document.getElementById('messages-container');
+    if (container) container.style.display = 'none';
+}, 5000);
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

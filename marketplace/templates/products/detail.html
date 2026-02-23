@@ -1,0 +1,341 @@
+{% extends "base/base.html" %}
+{% load humanize %}
+
+{% block title %}{{ product.name }}{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 py-8">
+    <!-- Breadcrumb -->
+    <nav class="flex items-center gap-2 text-sm text-gray-500 mb-6 flex-wrap">
+        <a href="{% url 'products:home' %}" class="hover:text-yellow-600 transition">Главная</a>
+        <span>/</span>
+        <a href="{% url 'products:catalog' %}" class="hover:text-yellow-600 transition">Каталог</a>
+        <span>/</span>
+        <a href="{% url 'products:catalog' %}?category={{ product.category.slug }}" class="hover:text-yellow-600 transition">{{ product.category.name }}</a>
+        <span>/</span>
+        <span class="text-gray-900 font-medium truncate max-w-xs">{{ product.name }}</span>
+    </nav>
+
+    <!-- Product Main Info -->
+    <div class="grid lg:grid-cols-2 gap-10 mb-12">
+        <!-- Images -->
+        <div>
+            <!-- Main Image -->
+            <div class="bg-white rounded-2xl overflow-hidden mb-3 aspect-square border border-gray-100 relative" id="main-img-container">
+                {% with product.get_main_image as main_img %}
+                {% if main_img %}
+                <img id="main-product-img" src="{{ main_img.image.url }}" alt="{{ main_img.alt|default:product.name }}"
+                     class="w-full h-full object-contain p-8">
+                {% else %}
+                <div class="w-full h-full flex items-center justify-center text-8xl opacity-20">📦</div>
+                {% endif %}
+                {% endwith %}
+
+                {% if product.discount_percent %}
+                <div class="absolute top-4 left-4 bg-red-500 text-white font-bold px-3 py-1.5 rounded-xl text-sm">-{{ product.discount_percent }}%</div>
+                {% endif %}
+
+                <!-- Wishlist button -->
+                {% if user.is_authenticated %}
+                <button onclick="toggleWishlist('{{ product.id }}')"
+                        id="wishlist-btn"
+                        class="absolute top-4 right-4 w-10 h-10 {% if in_wishlist %}bg-red-500 text-white{% else %}bg-white text-gray-400{% endif %} rounded-xl flex items-center justify-center shadow-md hover:scale-110 transition-all">
+                    ♥
+                </button>
+                {% endif %}
+            </div>
+
+            <!-- Thumbnails -->
+            {% if product.images.count > 1 %}
+            <div class="flex gap-2 overflow-x-auto pb-1">
+                {% for img in product.images.all %}
+                <button onclick="document.getElementById('main-product-img').src='{{ img.image.url }}'"
+                        class="shrink-0 w-16 h-16 bg-white rounded-xl overflow-hidden border-2 border-transparent hover:border-yellow-400 transition">
+                    <img src="{{ img.image.url }}" alt="{{ img.alt }}" class="w-full h-full object-cover">
+                </button>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Product Info -->
+        <div>
+            {% if product.brand %}
+            <a href="{% url 'products:catalog' %}?brand={{ product.brand.slug }}" class="text-yellow-600 font-semibold text-sm hover:text-yellow-700 transition">
+                {{ product.brand.name }}
+            </a>
+            {% endif %}
+
+            <h1 class="text-2xl lg:text-3xl font-black text-gray-900 mt-2 mb-4 leading-snug">{{ product.name }}</h1>
+
+            <!-- Rating & Reviews -->
+            <div class="flex items-center gap-4 mb-5">
+                <div class="flex items-center gap-2 bg-yellow-50 px-3 py-1.5 rounded-xl">
+                    <div class="flex">
+                        {% for i in "12345" %}
+                        <svg class="w-4 h-4 {% if forloop.counter <= product.avg_rating %}star-filled{% else %}star-empty{% endif %}" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                        </svg>
+                        {% endfor %}
+                    </div>
+                    <span class="font-bold text-gray-900 text-sm">{{ product.avg_rating }}</span>
+                </div>
+                <a href="#reviews" class="text-sm text-gray-500 hover:text-yellow-600 transition">{{ product.reviews_count }} отзывов</a>
+                <span class="text-sm text-gray-400">{{ product.views_count }} просмотров</span>
+            </div>
+
+            <!-- Price -->
+            <div class="bg-yellow-50 rounded-2xl p-5 mb-6 border border-yellow-100">
+                <div class="flex items-baseline gap-3 mb-1">
+                    <span class="text-4xl font-black text-gray-900">{{ product.price|floatformat:0|intcomma }}₽</span>
+                    {% if product.old_price %}
+                    <span class="text-xl text-gray-400 line-through">{{ product.old_price|floatformat:0|intcomma }}₽</span>
+                    <span class="bg-red-500 text-white text-sm font-bold px-2 py-0.5 rounded-lg">-{{ product.discount_percent }}%</span>
+                    {% endif %}
+                </div>
+                {% if product.in_stock %}
+                <p class="text-green-600 font-semibold text-sm">✅ В наличии ({{ product.stock }} шт.)</p>
+                {% else %}
+                <p class="text-red-500 font-semibold text-sm">❌ Нет в наличии</p>
+                {% endif %}
+            </div>
+
+            <!-- Add to Cart -->
+            {% if product.in_stock %}
+            <form method="post" action="{% url 'cart:add' product.id %}" class="add-to-cart-form">
+                {% csrf_token %}
+                <div class="flex gap-3 mb-4">
+                    <div class="flex items-center border border-gray-200 rounded-xl overflow-hidden bg-white">
+                        <button type="button" onclick="changeQty(-1)" class="px-4 py-3 text-gray-600 hover:bg-gray-50 font-bold text-lg transition">−</button>
+                        <input type="number" name="quantity" id="qty-input" value="1" min="1" max="{{ product.stock }}"
+                               class="w-16 text-center py-3 font-bold text-gray-900 border-x border-gray-200 outline-none">
+                        <button type="button" onclick="changeQty(1)" class="px-4 py-3 text-gray-600 hover:bg-gray-50 font-bold text-lg transition">+</button>
+                    </div>
+                    <button type="submit" class="flex-1 bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-black text-lg py-3 px-6 rounded-xl transition-all hover:shadow-md">
+                        В корзину 🛒
+                    </button>
+                </div>
+            </form>
+            {% endif %}
+
+            <!-- SKU & Delivery info -->
+            <div class="space-y-2 text-sm text-gray-500 mb-6">
+                <p>Артикул: <span class="font-mono text-gray-700">{{ product.sku }}</span></p>
+                <div class="flex items-center gap-2 text-green-700 bg-green-50 px-3 py-2 rounded-xl">
+                    🚚 <span>Бесплатная доставка при заказе от 1000₽</span>
+                </div>
+                <div class="flex items-center gap-2 text-blue-700 bg-blue-50 px-3 py-2 rounded-xl">
+                    🔄 <span>Возврат в течение 14 дней</span>
+                </div>
+            </div>
+
+            <!-- Description -->
+            {% if product.short_description %}
+            <p class="text-gray-600 text-sm leading-relaxed">{{ product.short_description }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Tabs: Description, Attributes, Reviews -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 mb-12">
+        <div class="flex border-b border-gray-100 overflow-x-auto" id="tab-nav">
+            <button onclick="showTab('description')" class="tab-btn active px-6 py-4 text-sm font-bold whitespace-nowrap border-b-2 border-yellow-400 text-yellow-600">
+                Описание
+            </button>
+            {% if product.attributes.count %}
+            <button onclick="showTab('attributes')" class="tab-btn px-6 py-4 text-sm font-bold whitespace-nowrap border-b-2 border-transparent text-gray-500 hover:text-gray-700 transition">
+                Характеристики
+            </button>
+            {% endif %}
+            <button onclick="showTab('reviews')" class="tab-btn px-6 py-4 text-sm font-bold whitespace-nowrap border-b-2 border-transparent text-gray-500 hover:text-gray-700 transition" id="reviews-tab-btn">
+                Отзывы ({{ product.reviews_count }})
+            </button>
+        </div>
+
+        <div class="p-6">
+            <!-- Description Tab -->
+            <div id="tab-description" class="tab-content">
+                <div class="prose max-w-none text-gray-700 leading-relaxed">
+                    {{ product.description|linebreaks }}
+                </div>
+            </div>
+
+            <!-- Attributes Tab -->
+            {% if product.attributes.count %}
+            <div id="tab-attributes" class="tab-content hidden">
+                <div class="grid sm:grid-cols-2 gap-2">
+                    {% for attr in product.get_attributes %}
+                    <div class="flex justify-between py-2.5 border-b border-gray-50">
+                        <span class="text-sm text-gray-500">{{ attr.attribute.name }}{% if attr.attribute.unit %}, {{ attr.attribute.unit }}{% endif %}</span>
+                        <span class="text-sm font-semibold text-gray-900">{{ attr.value }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Reviews Tab -->
+            <div id="tab-reviews" class="tab-content hidden" id="reviews">
+                <!-- Rating Summary -->
+                <div class="flex flex-col sm:flex-row gap-8 mb-8 p-5 bg-gray-50 rounded-xl">
+                    <div class="text-center">
+                        <p class="text-6xl font-black text-gray-900">{{ product.avg_rating }}</p>
+                        <div class="flex justify-center mt-2">
+                            {% for i in "12345" %}
+                            <svg class="w-5 h-5 {% if forloop.counter <= product.avg_rating %}star-filled{% else %}star-empty{% endif %}" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                            </svg>
+                            {% endfor %}
+                        </div>
+                        <p class="text-sm text-gray-500 mt-1">{{ product.reviews_count }} отзывов</p>
+                    </div>
+                    <div class="flex-1 space-y-2">
+                        {% for i in "54321" %}
+                        {% with stars=forloop.counter|add:0 %}
+                        <div class="flex items-center gap-3">
+                            <span class="text-sm font-medium text-gray-600 w-4">{{ forloop.revcounter|add:1 }}</span>
+                            <div class="flex-1 bg-gray-200 rounded-full h-2.5 overflow-hidden">
+                                {% if product.reviews_count %}
+                                <div class="bg-yellow-400 h-full rounded-full" style="width: {{ rating_dist|get_item:forloop.revcounter|add:1|default:0 }}00%"></div>
+                                {% endif %}
+                            </div>
+                            <span class="text-xs text-gray-400 w-5">{{ rating_dist|default_if_none:"" }}</span>
+                        </div>
+                        {% endwith %}
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Reviews List -->
+                {% for review in reviews %}
+                <div class="border-b border-gray-100 pb-5 mb-5 last:border-0">
+                    <div class="flex justify-between items-start mb-2">
+                        <div>
+                            <p class="font-semibold text-gray-900 text-sm">{{ review.user.get_full_name }}</p>
+                            <div class="flex mt-0.5">
+                                {% for i in "12345" %}
+                                <svg class="w-3.5 h-3.5 {% if forloop.counter <= review.rating %}star-filled{% else %}star-empty{% endif %}" viewBox="0 0 20 20" fill="currentColor">
+                                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
+                                </svg>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <span class="text-xs text-gray-400">{{ review.created_at|date:"d.m.Y" }}</span>
+                    </div>
+                    {% if review.title %}<p class="font-semibold text-gray-800 text-sm mb-1">{{ review.title }}</p>{% endif %}
+                    <p class="text-gray-600 text-sm leading-relaxed">{{ review.text }}</p>
+                    {% if review.pros %}
+                    <div class="mt-2">
+                        <span class="text-green-600 text-xs font-bold">✅ Достоинства: </span>
+                        <span class="text-gray-600 text-xs">{{ review.pros }}</span>
+                    </div>
+                    {% endif %}
+                    {% if review.cons %}
+                    <div class="mt-1">
+                        <span class="text-red-500 text-xs font-bold">❌ Недостатки: </span>
+                        <span class="text-gray-600 text-xs">{{ review.cons }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+                {% empty %}
+                <p class="text-gray-500 text-sm text-center py-8">Пока нет отзывов. Будьте первым!</p>
+                {% endfor %}
+
+                <!-- Review Form -->
+                {% if user.is_authenticated and not user_review %}
+                <div class="mt-6 bg-yellow-50 rounded-2xl p-6 border border-yellow-100">
+                    <h4 class="font-black text-gray-900 mb-4">Написать отзыв</h4>
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="space-y-4">
+                            <div>
+                                <label class="text-sm font-bold text-gray-700 mb-1 block">Оценка</label>
+                                <div class="flex gap-2">
+                                    {% for i in "12345" %}
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="rating" value="{{ forloop.counter }}" class="sr-only" required>
+                                        <span class="text-3xl star-radio hover:star-filled transition select-none">⭐</span>
+                                    </label>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% for field in review_form %}
+                            {% if field.name != 'rating' %}
+                            <div>
+                                <label class="text-sm font-bold text-gray-700 mb-1 block">{{ field.label }}</label>
+                                {{ field }}
+                                {% if field.errors %}<p class="text-red-500 text-xs mt-1">{{ field.errors.0 }}</p>{% endif %}
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+                            <button type="submit" class="btn-primary">Опубликовать отзыв</button>
+                        </div>
+                    </form>
+                </div>
+                {% elif not user.is_authenticated %}
+                <div class="mt-6 bg-gray-50 rounded-2xl p-6 text-center">
+                    <p class="text-gray-600 mb-3">Войдите, чтобы оставить отзыв</p>
+                    <a href="{% url 'users:login' %}?next={{ request.path }}" class="btn-primary">Войти</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Similar Products -->
+    {% if similar %}
+    <section>
+        <h2 class="text-2xl font-black text-gray-900 mb-6">Похожие товары</h2>
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            {% for p in similar %}
+            {% include "products/product_card.html" with product=p %}
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function showTab(tab) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+    document.querySelectorAll('.tab-btn').forEach(el => {
+        el.classList.remove('border-yellow-400', 'text-yellow-600');
+        el.classList.add('border-transparent', 'text-gray-500');
+    });
+    document.getElementById('tab-' + tab).classList.remove('hidden');
+    event.target.classList.add('border-yellow-400', 'text-yellow-600');
+    event.target.classList.remove('border-transparent', 'text-gray-500');
+}
+
+function changeQty(delta) {
+    const input = document.getElementById('qty-input');
+    const newVal = parseInt(input.value) + delta;
+    if (newVal >= 1 && newVal <= {{ product.stock }}) {
+        input.value = newVal;
+    }
+}
+
+async function toggleWishlist(productId) {
+    const res = await fetch(`/wishlist/toggle/${productId}/`, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': '{{ csrf_token }}', 'X-Requested-With': 'XMLHttpRequest' }
+    });
+    const data = await res.json();
+    const btn = document.getElementById('wishlist-btn');
+    if (data.added) {
+        btn.classList.add('bg-red-500', 'text-white');
+        btn.classList.remove('bg-white', 'text-gray-400');
+    } else {
+        btn.classList.remove('bg-red-500', 'text-white');
+        btn.classList.add('bg-white', 'text-gray-400');
+    }
+}
+
+// Style review form fields
+document.querySelectorAll('#tab-reviews input[type="text"], #tab-reviews textarea').forEach(el => {
+    el.classList.add('w-full', 'px-4', 'py-2', 'border', 'border-gray-300', 'rounded-xl', 'text-sm', 'focus:ring-2', 'focus:ring-yellow-400', 'outline-none', 'bg-white');
+});
+</script>
+{% endblock %}

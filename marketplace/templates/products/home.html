@@ -1,0 +1,131 @@
+{% extends "base/base.html" %}
+
+{% block title %}Главная{% endblock %}
+
+{% block content %}
+<!-- Hero Banner -->
+<section class="bg-gradient-to-r from-yellow-400 via-yellow-300 to-amber-200 py-16">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center gap-12">
+        <div class="flex-1">
+            <div class="inline-block bg-gray-900 text-yellow-400 text-xs font-bold px-3 py-1 rounded-full mb-4">🔥 Мегараспродажа до -70%</div>
+            <h1 class="text-5xl font-black text-gray-900 leading-tight mb-4">
+                Всё что нужно<br><span class="text-gray-700">— здесь и сейчас</span>
+            </h1>
+            <p class="text-lg text-gray-700 mb-8">Миллионы товаров, быстрая доставка, лучшие цены. Найди что ищешь с нашим AI-ассистентом.</p>
+            <div class="flex flex-wrap gap-3">
+                <a href="{% url 'products:catalog' %}" class="btn-primary text-lg px-8 py-3">
+                    Смотреть каталог →
+                </a>
+                <a href="{% url 'ai_chat:chat' %}" class="btn-secondary text-lg px-8 py-3">
+                    🤖 Спросить AI
+                </a>
+            </div>
+            <div class="flex gap-8 mt-8">
+                <div><p class="text-2xl font-black text-gray-900">2M+</p><p class="text-sm text-gray-600">товаров</p></div>
+                <div><p class="text-2xl font-black text-gray-900">24ч</p><p class="text-sm text-gray-600">доставка</p></div>
+                <div><p class="text-2xl font-black text-gray-900">5M+</p><p class="text-sm text-gray-600">покупателей</p></div>
+            </div>
+        </div>
+        <div class="flex-1 flex justify-center">
+            <div class="w-80 h-80 bg-gradient-to-br from-yellow-500 to-amber-400 rounded-3xl flex items-center justify-center shadow-2xl transform rotate-3">
+                <div class="transform -rotate-3 text-center">
+                    <div class="text-8xl mb-4">🛍️</div>
+                    <p class="text-gray-900 font-black text-2xl">YMarket</p>
+                    <p class="text-gray-700 text-sm">Твой маркетплейс</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Categories Grid -->
+<section class="max-w-7xl mx-auto px-4 py-12">
+    <h2 class="text-3xl font-black text-gray-900 mb-8">Категории товаров</h2>
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-8 gap-4">
+        {% for cat in top_categories %}
+        <a href="{% url 'products:catalog' %}?category={{ cat.slug }}"
+           class="group flex flex-col items-center gap-3 p-4 bg-white rounded-2xl hover:shadow-md hover:-translate-y-1 transition-all duration-200 border border-gray-100">
+            {% if cat.image %}
+            <img src="{{ cat.image.url }}" alt="{{ cat.name }}" class="w-12 h-12 object-contain">
+            {% else %}
+            <div class="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center text-2xl group-hover:bg-yellow-200 transition">🏷️</div>
+            {% endif %}
+            <span class="text-xs font-semibold text-gray-700 text-center leading-tight">{{ cat.name }}</span>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Featured Products -->
+{% if featured %}
+<section class="max-w-7xl mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-8">
+        <h2 class="text-3xl font-black text-gray-900">⭐ Рекомендуемые</h2>
+        <a href="{% url 'products:catalog' %}" class="text-yellow-600 hover:text-yellow-700 font-semibold text-sm flex items-center gap-1">
+            Все товары <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </a>
+    </div>
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-5">
+        {% for product in featured %}
+        {% include "products/product_card.html" with product=product %}
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<!-- Promo Banner -->
+<section class="max-w-7xl mx-auto px-4 py-8">
+    <div class="grid md:grid-cols-3 gap-4">
+        <div class="md:col-span-2 bg-gradient-to-r from-gray-900 to-gray-700 rounded-2xl p-8 text-white flex items-center gap-8">
+            <div>
+                <p class="text-yellow-400 font-bold text-sm mb-2">🤖 AI-ассистент</p>
+                <h3 class="text-2xl font-black mb-3">Не можешь найти нужное?</h3>
+                <p class="text-gray-300 text-sm mb-6">Наш AI поможет с выбором, сравнит товары и даст персональные рекомендации.</p>
+                <a href="{% url 'ai_chat:chat' %}" class="bg-yellow-400 text-gray-900 font-semibold px-6 py-2.5 rounded-xl hover:bg-yellow-300 transition inline-block">
+                    Открыть AI Чат →
+                </a>
+            </div>
+            <div class="text-8xl opacity-20">🤖</div>
+        </div>
+        <div class="bg-gradient-to-br from-yellow-400 to-amber-500 rounded-2xl p-8 flex flex-col justify-between">
+            <div>
+                <p class="text-gray-900 font-bold text-sm mb-2">🚀 Быстрая доставка</p>
+                <h3 class="text-xl font-black text-gray-900 mb-2">До двери за 24 часа</h3>
+                <p class="text-gray-800 text-sm">Бесплатно при заказе от 1000₽</p>
+            </div>
+            <a href="{% url 'products:catalog' %}" class="mt-4 bg-gray-900 text-yellow-400 font-semibold px-5 py-2.5 rounded-xl hover:bg-gray-800 transition text-sm inline-block text-center">
+                Заказать сейчас
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- New Arrivals -->
+<section class="max-w-7xl mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-8">
+        <h2 class="text-3xl font-black text-gray-900">🆕 Новинки</h2>
+        <a href="{% url 'products:catalog' %}?sort=new" class="text-yellow-600 hover:text-yellow-700 font-semibold text-sm flex items-center gap-1">
+            Все новинки <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+        </a>
+    </div>
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
+        {% for product in new_arrivals %}
+        {% include "products/product_card.html" with product=product %}
+        {% endfor %}
+    </div>
+</section>
+
+<!-- Personalized Recommendations -->
+{% if recommendations %}
+<section class="max-w-7xl mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-8">
+        <h2 class="text-3xl font-black text-gray-900">💡 Рекомендации для вас</h2>
+    </div>
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
+        {% for product in recommendations %}
+        {% include "products/product_card.html" with product=product %}
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,51 @@
+{% extends "base/base.html" %}
+{% load humanize %}
+
+{% block title %}Заказ оформлен{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 py-16 text-center">
+    <div class="text-8xl mb-6 animate-bounce">🎉</div>
+    <h1 class="text-4xl font-black text-gray-900 mb-3">Заказ оформлен!</h1>
+    <p class="text-gray-500 text-lg mb-8">Номер заказа: <span class="font-black text-yellow-600">#{{ order.order_number }}</span></p>
+
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 text-left mb-8">
+        <h2 class="font-black text-gray-900 mb-4">Детали заказа</h2>
+        <div class="grid sm:grid-cols-2 gap-4 text-sm mb-5">
+            <div>
+                <p class="text-gray-500">Получатель</p>
+                <p class="font-semibold text-gray-900">{{ order.full_name }}</p>
+            </div>
+            <div>
+                <p class="text-gray-500">Телефон</p>
+                <p class="font-semibold text-gray-900">{{ order.phone }}</p>
+            </div>
+            <div class="sm:col-span-2">
+                <p class="text-gray-500">Адрес доставки</p>
+                <p class="font-semibold text-gray-900">{{ order.city }}, {{ order.address }}, {{ order.postal_code }}</p>
+            </div>
+        </div>
+        <div class="border-t border-gray-100 pt-4 space-y-3">
+            {% for item in order.items.all %}
+            <div class="flex justify-between items-center text-sm">
+                <span class="text-gray-700">{{ item.product_name }} × {{ item.quantity }}</span>
+                <span class="font-bold">{{ item.get_total_price|floatformat:0|intcomma }}₽</span>
+            </div>
+            {% endfor %}
+            <div class="border-t border-gray-100 pt-3 flex justify-between font-black">
+                <span>Итого</span>
+                <span class="text-xl">{{ order.total|floatformat:0|intcomma }}₽</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-yellow-50 rounded-2xl p-5 mb-8 text-sm text-gray-700">
+        📧 Подтверждение отправлено на <strong>{{ order.email }}</strong>
+    </div>
+
+    <div class="flex flex-col sm:flex-row gap-3 justify-center">
+        <a href="{% url 'orders:detail' order.pk %}" class="btn-primary">Следить за заказом</a>
+        <a href="{% url 'products:catalog' %}" class="btn-secondary">Продолжить покупки</a>
+    </div>
+</div>
+{% endblock %}

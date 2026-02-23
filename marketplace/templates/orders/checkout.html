@@ -1,0 +1,142 @@
+{% extends "base/base.html" %}
+{% load humanize %}
+
+{% block title %}Оформление заказа{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto px-4 py-8">
+    <h1 class="text-3xl font-black text-gray-900 mb-8">Оформление заказа</h1>
+
+    <!-- Progress -->
+    <div class="flex items-center gap-2 mb-10">
+        <div class="flex items-center gap-2">
+            <div class="w-8 h-8 bg-yellow-400 text-gray-900 rounded-full flex items-center justify-center font-bold text-sm">✓</div>
+            <span class="text-sm font-semibold text-gray-900">Корзина</span>
+        </div>
+        <div class="flex-1 h-0.5 bg-yellow-400 max-w-16"></div>
+        <div class="flex items-center gap-2">
+            <div class="w-8 h-8 bg-yellow-400 text-gray-900 rounded-full flex items-center justify-center font-bold text-sm">2</div>
+            <span class="text-sm font-semibold text-gray-900">Оформление</span>
+        </div>
+        <div class="flex-1 h-0.5 bg-gray-200 max-w-16"></div>
+        <div class="flex items-center gap-2">
+            <div class="w-8 h-8 bg-gray-200 text-gray-500 rounded-full flex items-center justify-center font-bold text-sm">3</div>
+            <span class="text-sm text-gray-400">Подтверждение</span>
+        </div>
+    </div>
+
+    <div class="grid lg:grid-cols-3 gap-8">
+        <!-- Form -->
+        <div class="lg:col-span-2">
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+
+                <!-- Personal Info -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                    <h2 class="font-black text-lg text-gray-900 mb-5">👤 Контактные данные</h2>
+                    <div class="grid sm:grid-cols-2 gap-4">
+                        {% for field in form %}
+                        {% if field.name in "full_name,email,phone" %}
+                        <div>
+                            <label class="text-sm font-bold text-gray-700 mb-1.5 block">{{ field.label }} *</label>
+                            <input type="{{ field.field.widget.input_type|default:'text' }}"
+                                   name="{{ field.html_name }}"
+                                   value="{{ field.value|default:'' }}"
+                                   placeholder="{{ field.field.widget.attrs.placeholder|default:'' }}"
+                                   class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-yellow-400 outline-none transition"
+                                   {% if field.field.required %}required{% endif %}>
+                            {% if field.errors %}<p class="text-red-500 text-xs mt-1">{{ field.errors.0 }}</p>{% endif %}
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Delivery -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                    <h2 class="font-black text-lg text-gray-900 mb-5">🚚 Адрес доставки</h2>
+                    <div class="space-y-4">
+                        {% for field in form %}
+                        {% if field.name in "city,address,postal_code" %}
+                        <div>
+                            <label class="text-sm font-bold text-gray-700 mb-1.5 block">{{ field.label }} *</label>
+                            <input type="text" name="{{ field.html_name }}"
+                                   value="{{ field.value|default:'' }}"
+                                   placeholder="{{ field.field.widget.attrs.placeholder|default:'' }}"
+                                   class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-yellow-400 outline-none transition"
+                                   {% if field.field.required %}required{% endif %}>
+                            {% if field.errors %}<p class="text-red-500 text-xs mt-1">{{ field.errors.0 }}</p>{% endif %}
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+
+                        <!-- Comment -->
+                        <div>
+                            <label class="text-sm font-bold text-gray-700 mb-1.5 block">Комментарий (необязательно)</label>
+                            <textarea name="comment" rows="3" placeholder="Дополнительная информация для курьера..."
+                                      class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-yellow-400 outline-none transition resize-none">{{ form.comment.value|default:'' }}</textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment (placeholder) -->
+                <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                    <h2 class="font-black text-lg text-gray-900 mb-5">💳 Способ оплаты</h2>
+                    <label class="flex items-center gap-3 p-4 border-2 border-yellow-400 rounded-xl cursor-pointer bg-yellow-50">
+                        <input type="radio" name="payment" value="online" checked class="accent-yellow-400">
+                        <div>
+                            <p class="font-semibold text-gray-900 text-sm">💳 Онлайн картой</p>
+                            <p class="text-xs text-gray-500">Visa, Mastercard, МИР</p>
+                        </div>
+                    </label>
+                </div>
+
+                <button type="submit" class="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-black text-lg py-4 rounded-xl transition hover:shadow-md">
+                    Подтвердить заказ →
+                </button>
+            </form>
+        </div>
+
+        <!-- Order Summary -->
+        <div>
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 sticky top-24">
+                <h2 class="font-black text-lg text-gray-900 mb-5">Ваш заказ</h2>
+                <div class="space-y-4 mb-5 max-h-72 overflow-y-auto">
+                    {% for item in items %}
+                    <div class="flex gap-3 items-center">
+                        {% with item.product.get_main_image as img %}
+                        {% if img %}
+                        <img src="{{ img.image.url }}" class="w-12 h-12 rounded-xl object-cover shrink-0">
+                        {% else %}
+                        <div class="w-12 h-12 bg-yellow-50 rounded-xl flex items-center justify-center text-xl shrink-0">📦</div>
+                        {% endif %}
+                        {% endwith %}
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs font-medium text-gray-800 line-clamp-2">{{ item.product.name }}</p>
+                            <p class="text-xs text-gray-400">{{ item.quantity }} шт. × {{ item.product.price|floatformat:0|intcomma }}₽</p>
+                        </div>
+                        <p class="text-sm font-bold text-gray-900 shrink-0">{{ item.get_total_price|floatformat:0|intcomma }}₽</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="border-t border-gray-100 pt-4 space-y-2">
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-600">Товары</span>
+                        <span class="font-semibold">{{ subtotal|floatformat:0|intcomma }}₽</span>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-600">Доставка</span>
+                        <span class="font-semibold {% if delivery == 0 %}text-green-600{% endif %}">
+                            {% if delivery == 0 %}Бесплатно{% else %}{{ delivery }}₽{% endif %}
+                        </span>
+                    </div>
+                    <div class="border-t border-gray-100 pt-3 flex justify-between">
+                        <span class="font-bold text-gray-900">Итого</span>
+                        <span class="font-black text-2xl text-gray-900">{{ total|floatformat:0|intcomma }}₽</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
