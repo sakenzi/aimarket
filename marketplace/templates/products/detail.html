@@ -190,19 +190,43 @@
                         <p class="text-sm text-gray-500 mt-1">{{ product.reviews_count }} отзывов</p>
                     </div>
                     <div class="flex-1 space-y-2">
-                        {% for i in "54321" %}
-                        {% with stars=forloop.counter|add:0 %}
-                        <div class="flex items-center gap-3">
-                            <span class="text-sm font-medium text-gray-600 w-4">{{ forloop.revcounter|add:1 }}</span>
-                            <div class="flex-1 bg-gray-200 rounded-full h-2.5 overflow-hidden">
-                                {% if product.reviews_count %}
-                                <div class="bg-yellow-400 h-full rounded-full" style="width: {{ rating_dist|get_item:forloop.revcounter|add:1|default:0 }}00%"></div>
-                                {% endif %}
-                            </div>
-                            <span class="text-xs text-gray-400 w-5">{{ rating_dist|default_if_none:"" }}</span>
-                        </div>
-                        {% endwith %}
+                        {% for star_val in "5,4,3,2,1" %}
                         {% endfor %}
+                        <div class="flex items-center gap-3">
+                            <span class="text-sm font-medium text-gray-600 w-4">5</span>
+                            <div class="flex-1 bg-gray-200 rounded-full h-2.5 overflow-hidden">
+                                {% if product.reviews_count %}<div class="bg-yellow-400 h-full rounded-full" style="width: {% widthratio rating_dist.5|default:0 product.reviews_count 100 %}%"></div>{% endif %}
+                            </div>
+                            <span class="text-xs text-gray-400 w-5">{{ rating_dist.5|default:0 }}</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-sm font-medium text-gray-600 w-4">4</span>
+                            <div class="flex-1 bg-gray-200 rounded-full h-2.5 overflow-hidden">
+                                {% if product.reviews_count %}<div class="bg-yellow-400 h-full rounded-full" style="width: {% widthratio rating_dist.4|default:0 product.reviews_count 100 %}%"></div>{% endif %}
+                            </div>
+                            <span class="text-xs text-gray-400 w-5">{{ rating_dist.4|default:0 }}</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-sm font-medium text-gray-600 w-4">3</span>
+                            <div class="flex-1 bg-gray-200 rounded-full h-2.5 overflow-hidden">
+                                {% if product.reviews_count %}<div class="bg-yellow-400 h-full rounded-full" style="width: {% widthratio rating_dist.3|default:0 product.reviews_count 100 %}%"></div>{% endif %}
+                            </div>
+                            <span class="text-xs text-gray-400 w-5">{{ rating_dist.3|default:0 }}</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-sm font-medium text-gray-600 w-4">2</span>
+                            <div class="flex-1 bg-gray-200 rounded-full h-2.5 overflow-hidden">
+                                {% if product.reviews_count %}<div class="bg-yellow-400 h-full rounded-full" style="width: {% widthratio rating_dist.2|default:0 product.reviews_count 100 %}%"></div>{% endif %}
+                            </div>
+                            <span class="text-xs text-gray-400 w-5">{{ rating_dist.2|default:0 }}</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="text-sm font-medium text-gray-600 w-4">1</span>
+                            <div class="flex-1 bg-gray-200 rounded-full h-2.5 overflow-hidden">
+                                {% if product.reviews_count %}<div class="bg-yellow-400 h-full rounded-full" style="width: {% widthratio rating_dist.1|default:0 product.reviews_count 100 %}%"></div>{% endif %}
+                            </div>
+                            <span class="text-xs text-gray-400 w-5">{{ rating_dist.1|default:0 }}</span>
+                        </div>
                     </div>
                 </div>
 

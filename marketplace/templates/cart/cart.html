@@ -73,13 +73,17 @@
                     <div class="border-t border-gray-100 pt-3 flex justify-between">
                         <span class="font-bold text-gray-900">К оплате</span>
                         <span class="font-black text-xl text-gray-900" id="grand-total">
-                            {% if cart.get_total_price >= 1000 %}{{ cart.get_total_price|floatformat:0|intcomma }}{% else %}{{ cart.get_total_price|add:299|floatformat:0|intcomma }}{% endif %}₽
+                            {% if cart.get_total_price >= 1000 %}
+                                {{ cart.get_total_price|floatformat:0|intcomma }}
+                            {% else %}
+                                {% with total_with_delivery=cart.get_total_price|add:"299" %}{{ total_with_delivery|floatformat:0|intcomma }}{% endwith %}
+                            {% endif %}₽
                         </span>
                     </div>
                 </div>
                 {% if cart.get_total_price < 1000 %}
                 <div class="bg-green-50 text-green-700 text-xs p-3 rounded-xl mb-4">
-                    🚚 До бесплатной доставки: <strong>{{ 1000|add:-cart.get_total_price|floatformat:0 }}₽</strong>
+                    🚚 До бесплатной доставки: <strong>{{ cart.delivery_remaining|default:"" }}₽</strong>
                 </div>
                 {% endif %}
                 <a href="{% url 'orders:checkout' %}" class="block w-full text-center bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-black text-lg py-4 rounded-xl transition hover:shadow-md">

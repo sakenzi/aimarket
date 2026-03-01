@@ -30,7 +30,7 @@ def get_catalog_context():
     context = f"Доступные категории: {', '.join(categories)}\n\n"
     context += "Популярные товары:\n"
     for p in top_products:
-        context += f"- {p.name} | Цена: {p.price}₽ | Рейтинг: {p.avg_rating}\n"
+        context += f"- {p.name} | Цена: {p.price}₸ | Рейтинг: {p.avg_rating}\n"
     return context
 
 
@@ -58,7 +58,7 @@ def chat_with_ollama(messages: list, user_message: str, search_products: bool = 
             product_context = "\n\nРелевантные товары из каталога:\n"
             for p in relevant_products:
                 product_context += (
-                    f"- {p.name} | Цена: {p.price}₽ | "
+                    f"- {p.name} | Цена: {p.price}₸ | "
                     f"Рейтинг: {p.avg_rating}/5 | "
                     f"{'В наличии' if p.in_stock else 'Нет в наличии'}\n"
                 )

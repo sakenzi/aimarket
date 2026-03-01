@@ -25,6 +25,11 @@ class Cart(models.Model):
     def get_items_count(self):
         return self.items.count()
 
+    def delivery_remaining(self):
+        total = self.get_total_price()
+        remaining = 1000 - total
+        return max(remaining, 0)
+
 
 class CartItem(models.Model):
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='items')
