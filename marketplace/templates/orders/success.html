@@ -29,12 +29,12 @@
             {% for item in order.items.all %}
             <div class="flex justify-between items-center text-sm">
                 <span class="text-gray-700">{{ item.product_name }} × {{ item.quantity }}</span>
-                <span class="font-bold">{{ item.get_total_price|floatformat:0|intcomma }}₽</span>
+                <span class="font-bold">{{ item.get_total_price|floatformat:0|intcomma }}₸</span>
             </div>
             {% endfor %}
             <div class="border-t border-gray-100 pt-3 flex justify-between font-black">
                 <span>Итого</span>
-                <span class="text-xl">{{ order.total|floatformat:0|intcomma }}₽</span>
+                <span class="text-xl">{{ order.total|floatformat:0|intcomma }}₸</span>
             </div>
         </div>
     </div>

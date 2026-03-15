@@ -126,8 +126,9 @@ LOGIN_URL = '/users/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
-OLLAMA_BASE_URL = os.getenv('OLLAMA_BASE_URL', 'http://localhost:11434')
-OLLAMA_MODEL = os.getenv('OLLAMA_MODEL', 'llama3.2')
+OLLAMA_BASE_URL = "http://localhost:11434"
+OLLAMA_MODEL = "gpt-oss:120b-cloud"
+OLLAMA_TIMEOUT = 600
 
 PRODUCTS_PER_PAGE = 20
 

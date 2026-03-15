@@ -87,9 +87,9 @@
             <!-- Price -->
             <div class="bg-yellow-50 rounded-2xl p-5 mb-6 border border-yellow-100">
                 <div class="flex items-baseline gap-3 mb-1">
-                    <span class="text-4xl font-black text-gray-900">{{ product.price|floatformat:0|intcomma }}₽</span>
+                    <span class="text-4xl font-black text-gray-900">{{ product.price|floatformat:0|intcomma }}₸</span>
                     {% if product.old_price %}
-                    <span class="text-xl text-gray-400 line-through">{{ product.old_price|floatformat:0|intcomma }}₽</span>
+                    <span class="text-xl text-gray-400 line-through">{{ product.old_price|floatformat:0|intcomma }}₸</span>
                     <span class="bg-red-500 text-white text-sm font-bold px-2 py-0.5 rounded-lg">-{{ product.discount_percent }}%</span>
                     {% endif %}
                 </div>
@@ -122,7 +122,7 @@
             <div class="space-y-2 text-sm text-gray-500 mb-6">
                 <p>Артикул: <span class="font-mono text-gray-700">{{ product.sku }}</span></p>
                 <div class="flex items-center gap-2 text-green-700 bg-green-50 px-3 py-2 rounded-xl">
-                    🚚 <span>Бесплатная доставка при заказе от 1000₽</span>
+                    🚚 <span>Бесплатная доставка при заказе от 1000₸</span>
                 </div>
                 <div class="flex items-center gap-2 text-blue-700 bg-blue-50 px-3 py-2 rounded-xl">
                     🔄 <span>Возврат в течение 14 дней</span>

@@ -29,7 +29,7 @@
                         {{ item.product.name }}
                     </a>
                     <p class="text-xs text-gray-400 mb-2">Арт.: {{ item.product.sku }}</p>
-                    <p class="text-lg font-black text-gray-900">{{ item.product.price|floatformat:0|intcomma }}₽</p>
+                    <p class="text-lg font-black text-gray-900">{{ item.product.price|floatformat:0|intcomma }}₸</p>
                 </div>
 
                 <!-- Qty Controls -->
@@ -42,7 +42,7 @@
                                 class="px-3 py-2 text-gray-600 hover:bg-gray-50 transition font-bold">+</button>
                     </div>
                     <p class="text-base font-black text-gray-900" id="item-total-{{ item.id }}">
-                        {{ item.get_total_price|floatformat:0|intcomma }}₽
+                        {{ item.get_total_price|floatformat:0|intcomma }}₸
                     </p>
                     <button onclick="removeItem({{ item.id }})"
                             class="text-red-400 hover:text-red-600 text-xs font-medium transition flex items-center gap-1">
@@ -60,14 +60,14 @@
                 <div class="space-y-3 mb-5">
                     <div class="flex justify-between text-sm">
                         <span class="text-gray-600">Товары ({{ cart.get_items_count }})</span>
-                        <span class="font-semibold" id="subtotal">{{ cart.get_total_price|floatformat:0|intcomma }}₽</span>
+                        <span class="font-semibold" id="subtotal">{{ cart.get_total_price|floatformat:0|intcomma }}₸</span>
                     </div>
                     <div class="flex justify-between text-sm">
                         <span class="text-gray-600">Доставка</span>
                         {% if cart.get_total_price >= 1000 %}
                         <span class="font-semibold text-green-600">Бесплатно</span>
                         {% else %}
-                        <span class="font-semibold">299₽</span>
+                        <span class="font-semibold">299₸</span>
                         {% endif %}
                     </div>
                     <div class="border-t border-gray-100 pt-3 flex justify-between">
@@ -77,13 +77,13 @@
                                 {{ cart.get_total_price|floatformat:0|intcomma }}
                             {% else %}
                                 {% with total_with_delivery=cart.get_total_price|add:"299" %}{{ total_with_delivery|floatformat:0|intcomma }}{% endwith %}
-                            {% endif %}₽
+                            {% endif %}₸
                         </span>
                     </div>
                 </div>
                 {% if cart.get_total_price < 1000 %}
                 <div class="bg-green-50 text-green-700 text-xs p-3 rounded-xl mb-4">
-                    🚚 До бесплатной доставки: <strong>{{ cart.delivery_remaining|default:"" }}₽</strong>
+                    🚚 До бесплатной доставки: <strong>{{ cart.delivery_remaining|default:"" }}₸</strong>
                 </div>
                 {% endif %}
                 <a href="{% url 'orders:checkout' %}" class="block w-full text-center bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-black text-lg py-4 rounded-xl transition hover:shadow-md">
@@ -125,8 +125,8 @@ async function updateQty(itemId, qty) {
     const data = await res.json();
     if (data.success) {
         document.getElementById(`qty-${itemId}`).textContent = qty;
-        document.getElementById(`item-total-${itemId}`).textContent = parseInt(data.item_total).toLocaleString('ru') + '₽';
-        document.getElementById('subtotal').textContent = parseInt(data.cart_total).toLocaleString('ru') + '₽';
+        document.getElementById(`item-total-${itemId}`).textContent = parseInt(data.item_total).toLocaleString('ru') + '₸';
+        document.getElementById('subtotal').textContent = parseInt(data.cart_total).toLocaleString('ru') + '₸';
         document.querySelectorAll('.cart-badge').forEach(el => el.textContent = data.cart_count);
     }
 }

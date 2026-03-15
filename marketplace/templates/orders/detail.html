@@ -54,9 +54,9 @@
                         <div class="flex-1">
                             <p class="font-semibold text-gray-900 text-sm">{{ item.product_name }}</p>
                             <p class="text-xs text-gray-400 mt-0.5">Арт.: {{ item.product_sku }}</p>
-                            <p class="text-sm text-gray-500 mt-1">{{ item.quantity }} шт. × {{ item.price|floatformat:0|intcomma }}₽</p>
+                            <p class="text-sm text-gray-500 mt-1">{{ item.quantity }} шт. × {{ item.price|floatformat:0|intcomma }}₸</p>
                         </div>
-                        <p class="font-black text-gray-900">{{ item.get_total_price|floatformat:0|intcomma }}₽</p>
+                        <p class="font-black text-gray-900">{{ item.get_total_price|floatformat:0|intcomma }}₸</p>
                     </div>
                     {% endfor %}
                 </div>
@@ -102,17 +102,17 @@
                 <div class="space-y-2 text-sm">
                     <div class="flex justify-between">
                         <span class="text-gray-500">Товары</span>
-                        <span class="font-medium">{{ order.subtotal|floatformat:0|intcomma }}₽</span>
+                        <span class="font-medium">{{ order.subtotal|floatformat:0|intcomma }}₸</span>
                     </div>
                     <div class="flex justify-between">
                         <span class="text-gray-500">Доставка</span>
                         <span class="font-medium {% if order.delivery_cost == 0 %}text-green-600{% endif %}">
-                            {% if order.delivery_cost == 0 %}Бесплатно{% else %}{{ order.delivery_cost|floatformat:0|intcomma }}₽{% endif %}
+                            {% if order.delivery_cost == 0 %}Бесплатно{% else %}{{ order.delivery_cost|floatformat:0|intcomma }}₸{% endif %}
                         </span>
                     </div>
                     <div class="border-t border-gray-100 pt-2 flex justify-between">
                         <span class="font-bold text-gray-900">Итого</span>
-                        <span class="font-black text-xl text-gray-900">{{ order.total|floatformat:0|intcomma }}₽</span>
+                        <span class="font-black text-xl text-gray-900">{{ order.total|floatformat:0|intcomma }}₸</span>
                     </div>
                 </div>
             </div>

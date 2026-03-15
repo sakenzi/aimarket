@@ -113,26 +113,26 @@
                         {% endwith %}
                         <div class="flex-1 min-w-0">
                             <p class="text-xs font-medium text-gray-800 line-clamp-2">{{ item.product.name }}</p>
-                            <p class="text-xs text-gray-400">{{ item.quantity }} шт. × {{ item.product.price|floatformat:0|intcomma }}₽</p>
+                            <p class="text-xs text-gray-400">{{ item.quantity }} шт. × {{ item.product.price|floatformat:0|intcomma }}₸</p>
                         </div>
-                        <p class="text-sm font-bold text-gray-900 shrink-0">{{ item.get_total_price|floatformat:0|intcomma }}₽</p>
+                        <p class="text-sm font-bold text-gray-900 shrink-0">{{ item.get_total_price|floatformat:0|intcomma }}₸</p>
                     </div>
                     {% endfor %}
                 </div>
                 <div class="border-t border-gray-100 pt-4 space-y-2">
                     <div class="flex justify-between text-sm">
                         <span class="text-gray-600">Товары</span>
-                        <span class="font-semibold">{{ subtotal|floatformat:0|intcomma }}₽</span>
+                        <span class="font-semibold">{{ subtotal|floatformat:0|intcomma }}₸</span>
                     </div>
                     <div class="flex justify-between text-sm">
                         <span class="text-gray-600">Доставка</span>
                         <span class="font-semibold {% if delivery == 0 %}text-green-600{% endif %}">
-                            {% if delivery == 0 %}Бесплатно{% else %}{{ delivery }}₽{% endif %}
+                            {% if delivery == 0 %}Бесплатно{% else %}{{ delivery }}₸{% endif %}
                         </span>
                     </div>
                     <div class="border-t border-gray-100 pt-3 flex justify-between">
                         <span class="font-bold text-gray-900">Итого</span>
-                        <span class="font-black text-2xl text-gray-900">{{ total|floatformat:0|intcomma }}₽</span>
+                        <span class="font-black text-2xl text-gray-900">{{ total|floatformat:0|intcomma }}₸</span>
                     </div>
                 </div>
             </div>

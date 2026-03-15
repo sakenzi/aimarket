@@ -6,8 +6,8 @@ from apps.products.models import Product, Category
 
 logger = logging.getLogger(__name__)
 
-OLLAMA_BASE_URL = getattr(settings, 'OLLAMA_BASE_URL', 'http://localhost:11434')
-OLLAMA_MODEL = getattr(settings, 'OLLAMA_MODEL', 'llama3.2')
+OLLAMA_BASE_URL = 'http://localhost:11434'
+OLLAMA_MODEL = "gpt-oss:120b-cloud"
 
 SYSTEM_PROMPT = """Ты — дружелюбный AI-помощник маркетплейса. Твоя задача — помогать покупателям найти нужные товары, отвечать на вопросы об ассортименте, ценах и категориях.
 
@@ -99,11 +99,19 @@ def chat_with_ollama(messages: list, user_message: str, search_products: bool = 
         return reply, relevant_products
     except httpx.ConnectError:
         logger.error("Cannot connect to Ollama. Is it running?")
-        return (
-            "Извините, AI-ассистент временно недоступен. "
-            "Попробуйте воспользоваться поиском по каталогу или обратитесь в поддержку.",
-            []
-        )
+        return "Извините, AI-ассистент недоступен. Убедитесь, что Ollama запущена (`ollama serve`).", []
+    except httpx.HTTPStatusError as e:
+        if e.response.status_code == 502:
+            logger.error(f"Ollama 502: model '{OLLAMA_MODEL}' not loaded.")
+            return (
+                f"Модель '{OLLAMA_MODEL}' не загружена. "
+                f"Выполните в терминале: ollama pull {OLLAMA_MODEL}",
+                []
+            )
+        logger.exception(f"Ollama HTTP error: {e}")
+        return f"Ошибка сервера AI: {e.response.status_code}", []
+    except httpx.TimeoutException:
+        return "Время ожидания истекло. Модель может быть ещё загружается.", []
     except Exception as e:
         logger.exception(f"Ollama error: {e}")
         return f"Произошла ошибка: {str(e)[:100]}", []

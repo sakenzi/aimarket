@@ -41,9 +41,9 @@
 
         <!-- Price -->
         <div class="flex items-baseline gap-2 mb-3">
-            <span class="text-xl font-black text-gray-900">{{ product.price|floatformat:0|intcomma }}₽</span>
+            <span class="text-xl font-black text-gray-900">{{ product.price|floatformat:0|intcomma }}₸</span>
             {% if product.old_price %}
-            <span class="text-sm text-gray-400 line-through">{{ product.old_price|floatformat:0|intcomma }}₽</span>
+            <span class="text-sm text-gray-400 line-through">{{ product.old_price|floatformat:0|intcomma }}₸</span>
             {% endif %}
         </div>
 
