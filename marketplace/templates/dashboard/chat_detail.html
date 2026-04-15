@@ -1,0 +1,48 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}Чат: {{ session.title }}{% endblock %}
+{% block page_title %}{{ session.title }}{% endblock %}
+{% block breadcrumb %}
+<p class="text-xs text-gray-400 mt-0.5"><a href="{% url 'dashboard:chats' %}" class="hover:text-yellow-600">Чаты</a> / {{ session.title|truncatechars:40 }}</p>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl">
+    <!-- Meta -->
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mb-5 flex items-center gap-4">
+        <div class="w-10 h-10 bg-gray-900 rounded-xl flex items-center justify-center text-yellow-400 font-black text-sm">AI</div>
+        <div class="flex-1">
+            <p class="font-bold text-gray-900 text-sm">{{ session.title }}</p>
+            <p class="text-xs text-gray-400">
+                {% if session.user %}{{ session.user.email }}{% else %}Анонимный{% endif %}
+                · {{ chat_messages.count }} сообщений
+                · {{ session.created_at|date:"d.m.Y H:i" }}
+            </p>
+        </div>
+    </div>
+
+    <!-- Messages -->
+    <div class="space-y-4">
+        {% for msg in chat_messages %}
+        <div class="flex {% if msg.role == 'user' %}justify-end{% else %}justify-start{% endif %}">
+            {% if msg.role == 'assistant' %}
+            <div class="w-8 h-8 bg-gray-900 rounded-xl flex items-center justify-center text-yellow-400 font-bold text-xs shrink-0 mt-1 mr-2">AI</div>
+            {% endif %}
+            <div class="max-w-xl">
+                <div class="{% if msg.role == 'user' %}bg-yellow-100 text-gray-900{% else %}bg-white border border-gray-100 text-gray-800{% endif %} rounded-2xl px-5 py-3 text-sm leading-relaxed shadow-sm">
+                    {{ msg.content|linebreaks }}
+                </div>
+                <p class="text-xs text-gray-400 mt-1 {% if msg.role == 'user' %}text-right{% endif %}">
+                    {{ msg.created_at|date:"H:i" }}
+                </p>
+            </div>
+            {% if msg.role == 'user' %}
+            <div class="w-8 h-8 bg-yellow-400 rounded-xl flex items-center justify-center text-gray-900 font-bold text-xs shrink-0 mt-1 ml-2">U</div>
+            {% endif %}
+        </div>
+        {% empty %}
+        <p class="text-center text-gray-400 py-12">Сообщений нет</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

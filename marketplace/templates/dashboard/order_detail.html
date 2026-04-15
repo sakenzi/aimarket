@@ -1,0 +1,162 @@
+{% extends "dashboard/base.html" %}
+{% load humanize %}
+
+{% block title %}Заказ #{{ order.order_number }}{% endblock %}
+{% block page_title %}Заказ #{{ order.order_number }}{% endblock %}
+
+{% block breadcrumb %}
+<p class="text-xs text-gray-400 mt-0.5">
+    <a href="{% url 'dashboard:orders' %}" class="hover:text-yellow-600">Заказы</a> / #{{ order.order_number }}
+</p>
+{% endblock %}
+
+{% block content %}
+<div class="grid lg:grid-cols-3 gap-6">
+    <!-- Left: items + history -->
+    <div class="lg:col-span-2 space-y-5">
+        <!-- Items -->
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100">
+                <h2 class="font-black text-gray-900">Товары ({{ order.items.count }})</h2>
+            </div>
+            <div class="divide-y divide-gray-50">
+                {% for item in order.items.all %}
+                <div class="flex items-center gap-4 px-6 py-4">
+                    {% with item.product.get_main_image as img %}
+                    {% if img %}
+                    <img src="{{ img.image.url }}" class="w-14 h-14 rounded-xl object-cover shrink-0">
+                    {% else %}
+                    <div class="w-14 h-14 bg-yellow-50 rounded-xl flex items-center justify-center text-2xl shrink-0">📦</div>
+                    {% endif %}
+                    {% endwith %}
+                    <div class="flex-1 min-w-0">
+                        <p class="font-semibold text-gray-900 text-sm">{{ item.product_name }}</p>
+                        <p class="text-xs text-gray-400 font-mono mt-0.5">{{ item.product_sku }}</p>
+                    </div>
+                    <div class="text-right shrink-0">
+                        <p class="font-bold text-gray-900">{{ item.get_total_price|floatformat:0|intcomma }}₽</p>
+                        <p class="text-xs text-gray-400">{{ item.quantity }} × {{ item.price|floatformat:0|intcomma }}₽</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="px-6 py-4 bg-gray-50 border-t border-gray-100">
+                <div class="flex justify-between text-sm mb-1">
+                    <span class="text-gray-500">Товары</span>
+                    <span>{{ order.subtotal|floatformat:0|intcomma }}₽</span>
+                </div>
+                <div class="flex justify-between text-sm mb-2">
+                    <span class="text-gray-500">Доставка</span>
+                    <span>{% if order.delivery_cost == 0 %}Бесплатно{% else %}{{ order.delivery_cost|floatformat:0|intcomma }}₽{% endif %}</span>
+                </div>
+                <div class="flex justify-between font-black text-lg">
+                    <span>Итого</span>
+                    <span>{{ order.total|floatformat:0|intcomma }}₽</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status History -->
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+            <h2 class="font-black text-gray-900 mb-4">История статусов</h2>
+            <div class="relative">
+                <div class="absolute left-3.5 top-0 bottom-0 w-0.5 bg-gray-100"></div>
+                <div class="space-y-4">
+                    {% for event in order.history.all %}
+                    <div class="flex gap-4 items-start relative">
+                        <div class="w-7 h-7 bg-yellow-400 rounded-full flex items-center justify-center shrink-0 z-10">
+                            <div class="w-2.5 h-2.5 bg-gray-900 rounded-full"></div>
+                        </div>
+                        <div class="flex-1 pb-1">
+                            <div class="flex justify-between items-start">
+                                <p class="font-semibold text-gray-900 text-sm">{{ event.get_status_display }}</p>
+                                <span class="text-xs text-gray-400">{{ event.created_at|date:"d.m.Y H:i" }}</span>
+                            </div>
+                            {% if event.comment %}<p class="text-xs text-gray-500 mt-0.5">{{ event.comment }}</p>{% endif %}
+                            {% if event.created_by %}<p class="text-xs text-gray-400 mt-0.5">{{ event.created_by.get_full_name }}</p>{% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right: info + status change -->
+    <div class="space-y-5">
+        <!-- Current status -->
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+            <h3 class="font-black text-gray-900 mb-3">Статус заказа</h3>
+            <span class="badge text-sm px-3 py-1.5
+                {% if order.status == 'delivered' %}bg-green-100 text-green-700
+                {% elif order.status == 'shipped' %}bg-purple-100 text-purple-700
+                {% elif order.status == 'processing' %}bg-blue-100 text-blue-700
+                {% elif order.status == 'cancelled' %}bg-red-100 text-red-700
+                {% elif order.status == 'pending' %}bg-yellow-100 text-yellow-700
+                {% else %}bg-gray-100 text-gray-600{% endif %}">
+                {{ order.get_status_display }}
+            </span>
+
+            <!-- Change status form -->
+            <form method="post" class="mt-4 space-y-3">
+                {% csrf_token %}
+                <div>
+                    <label class="text-xs font-bold text-gray-500 block mb-1">Изменить статус</label>
+                    <select name="status" class="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-yellow-400">
+                        {% for value, label in status_choices %}
+                        <option value="{{ value }}" {% if order.status == value %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label class="text-xs font-bold text-gray-500 block mb-1">Комментарий (необязательно)</label>
+                    <textarea name="comment" rows="2" placeholder="Например: передан в службу доставки"
+                              class="w-full px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-yellow-400 resize-none"></textarea>
+                </div>
+                <button type="submit" class="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold py-2.5 rounded-xl text-sm transition">
+                    Сохранить статус
+                </button>
+            </form>
+        </div>
+
+        <!-- Customer info -->
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+            <h3 class="font-black text-gray-900 mb-3">Покупатель</h3>
+            <div class="space-y-2 text-sm">
+                <div class="flex justify-between">
+                    <span class="text-gray-500">Имя</span>
+                    <span class="font-medium">{{ order.full_name }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-500">Email</span>
+                    <a href="{% url 'dashboard:user_detail' order.user.pk %}" class="font-medium text-yellow-600 hover:underline">{{ order.email }}</a>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-500">Телефон</span>
+                    <span class="font-medium">{{ order.phone }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Delivery info -->
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+            <h3 class="font-black text-gray-900 mb-3">Доставка</h3>
+            <div class="space-y-2 text-sm">
+                <div><span class="text-gray-500">Город: </span><span class="font-medium">{{ order.city }}</span></div>
+                <div><span class="text-gray-500">Адрес: </span><span class="font-medium">{{ order.address }}</span></div>
+                <div><span class="text-gray-500">Индекс: </span><span class="font-mono font-medium">{{ order.postal_code }}</span></div>
+                {% if order.comment %}
+                <div class="bg-yellow-50 rounded-xl p-3 text-xs text-gray-600 mt-2">
+                    💬 {{ order.comment }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <p class="text-xs text-gray-400 text-center">
+            Создан {{ order.created_at|date:"d.m.Y в H:i" }}<br>
+            Обновлён {{ order.updated_at|date:"d.m.Y в H:i" }}
+        </p>
+    </div>
+</div>
+{% endblock %}

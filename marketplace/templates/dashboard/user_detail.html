@@ -1,0 +1,120 @@
+{% extends "dashboard/base.html" %}
+{% load humanize %}
+
+{% block title %}{{ profile_user.get_full_name|default:profile_user.email }}{% endblock %}
+{% block page_title %}{{ profile_user.get_full_name|default:profile_user.email }}{% endblock %}
+{% block breadcrumb %}
+<p class="text-xs text-gray-400 mt-0.5"><a href="{% url 'dashboard:users' %}" class="hover:text-yellow-600">Пользователи</a> / {{ profile_user.email }}</p>
+{% endblock %}
+
+{% block content %}
+<div class="grid lg:grid-cols-3 gap-6">
+    <!-- Sidebar info -->
+    <div class="space-y-5">
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 text-center">
+            <div class="w-16 h-16 bg-yellow-100 rounded-2xl flex items-center justify-center font-black text-yellow-700 text-2xl mx-auto mb-3">
+                {{ profile_user.first_name|first|upper }}{{ profile_user.last_name|first|upper }}
+            </div>
+            <p class="font-black text-xl text-gray-900">{{ profile_user.get_full_name|default:"—" }}</p>
+            <p class="text-gray-500 text-sm">{{ profile_user.email }}</p>
+            {% if profile_user.phone %}<p class="text-gray-400 text-xs mt-1">{{ profile_user.phone }}</p>{% endif %}
+            <div class="mt-4 flex flex-wrap justify-center gap-2">
+                {% if profile_user.is_staff %}<span class="badge bg-purple-100 text-purple-700">Персонал</span>{% endif %}
+                {% if profile_user.is_active %}<span class="badge bg-green-100 text-green-700">Активен</span>{% else %}<span class="badge bg-red-100 text-red-700">Заблокирован</span>{% endif %}
+                {% if profile_user.is_superuser %}<span class="badge bg-gray-800 text-white">Superuser</span>{% endif %}
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+            <h3 class="font-black text-gray-900 mb-3">Статистика</h3>
+            <div class="space-y-3 text-sm">
+                <div class="flex justify-between">
+                    <span class="text-gray-500">Заказов</span>
+                    <span class="font-bold">{{ orders.count }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-500">Потрачено</span>
+                    <span class="font-bold text-green-600">{{ total_spent|floatformat:0|intcomma }}₽</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-500">Отзывов</span>
+                    <span class="font-bold">{{ reviews.count }}</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="text-gray-500">Регистрация</span>
+                    <span class="font-medium">{{ profile_user.created_at|date:"d.m.Y" }}</span>
+                </div>
+            </div>
+        </div>
+
+        {% if not profile_user.is_superuser %}
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="toggle_active">
+            <button type="submit" onclick="return confirm('Уверены?')"
+                    class="w-full py-2.5 rounded-xl text-sm font-bold transition
+                        {% if profile_user.is_active %}bg-red-50 text-red-600 hover:bg-red-100{% else %}bg-green-50 text-green-600 hover:bg-green-100{% endif %}">
+                {% if profile_user.is_active %}🔒 Заблокировать{% else %}✅ Разблокировать{% endif %}
+            </button>
+        </form>
+        {% endif %}
+    </div>
+
+    <!-- Orders + Reviews -->
+    <div class="lg:col-span-2 space-y-5">
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100 flex justify-between">
+                <h2 class="font-black text-gray-900">Последние заказы</h2>
+                <span class="text-sm text-gray-400">{{ orders.count }} всего</span>
+            </div>
+            <div class="divide-y divide-gray-50">
+                {% for order in orders %}
+                <a href="{% url 'dashboard:order_detail' order.pk %}" class="flex items-center justify-between px-6 py-3 hover:bg-gray-50 transition">
+                    <div>
+                        <p class="font-semibold text-sm text-gray-900">#{{ order.order_number }}</p>
+                        <p class="text-xs text-gray-400">{{ order.created_at|date:"d.m.Y" }} · {{ order.items.count }} тов.</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-black text-gray-900 text-sm">{{ order.total|floatformat:0|intcomma }}₽</p>
+                        <span class="badge text-xs
+                            {% if order.status == 'delivered' %}bg-green-100 text-green-700
+                            {% elif order.status == 'cancelled' %}bg-red-100 text-red-700
+                            {% else %}bg-yellow-100 text-yellow-700{% endif %}">
+                            {{ order.get_status_display }}
+                        </span>
+                    </div>
+                </a>
+                {% empty %}
+                <p class="px-6 py-8 text-gray-400 text-sm text-center">Заказов нет</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-100">
+                <h2 class="font-black text-gray-900">Отзывы</h2>
+            </div>
+            <div class="divide-y divide-gray-50">
+                {% for review in reviews %}
+                <div class="px-6 py-4">
+                    <div class="flex justify-between items-start mb-1">
+                        <a href="{% url 'products:detail' review.product.slug %}" target="_blank"
+                           class="font-semibold text-sm text-gray-900 hover:text-yellow-600">{{ review.product.name }}</a>
+                        <div class="flex items-center gap-2">
+                            <span class="text-yellow-500 text-sm">{{ review.rating }}⭐</span>
+                            <span class="badge {% if review.is_approved %}bg-green-100 text-green-700{% else %}bg-orange-100 text-orange-700{% endif %}">
+                                {% if review.is_approved %}Одобрен{% else %}На проверке{% endif %}
+                            </span>
+                        </div>
+                    </div>
+                    <p class="text-xs text-gray-600">{{ review.text|truncatechars:150 }}</p>
+                    <p class="text-xs text-gray-400 mt-1">{{ review.created_at|date:"d.m.Y" }}</p>
+                </div>
+                {% empty %}
+                <p class="px-6 py-8 text-gray-400 text-sm text-center">Отзывов нет</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

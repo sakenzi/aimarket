@@ -11,6 +11,7 @@ urlpatterns = [
     path('cart/', include('apps.cart.urls', namespace='cart')),
     path('orders/', include('apps.orders.urls', namespace='orders')),
     path('ai-chat/', include('apps.ai_chat.urls', namespace='ai_chat')),
+    path('dashboard/', include('apps.dashboard.urls', namespace='dashboard')),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 
 if settings.DEBUG:

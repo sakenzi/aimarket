@@ -1,0 +1,54 @@
+{% extends "dashboard/base.html" %}
+
+{% block title %}AI Чаты{% endblock %}
+{% block page_title %}AI Чаты{% endblock %}
+
+{% block content %}
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+    <table class="w-full text-sm">
+        <thead class="bg-gray-50 border-b border-gray-100">
+            <tr>
+                <th class="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Сессия</th>
+                <th class="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Пользователь</th>
+                <th class="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider hidden md:table-cell">Сообщений</th>
+                <th class="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider hidden lg:table-cell">Обновлён</th>
+                <th class="px-5 py-3"></th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50">
+            {% for session in page_obj %}
+            <tr class="hover:bg-gray-50 transition">
+                <td class="px-5 py-3">
+                    <p class="font-semibold text-gray-900 max-w-xs truncate">{{ session.title }}</p>
+                </td>
+                <td class="px-5 py-3">
+                    {% if session.user %}
+                    <a href="{% url 'dashboard:user_detail' session.user.pk %}" class="text-yellow-600 hover:underline text-sm">
+                        {{ session.user.email }}
+                    </a>
+                    {% else %}
+                    <span class="text-gray-400 text-sm">Анонимный</span>
+                    {% endif %}
+                </td>
+                <td class="px-5 py-3 text-gray-500 hidden md:table-cell">{{ session.msg_count }}</td>
+                <td class="px-5 py-3 text-gray-400 text-xs hidden lg:table-cell">{{ session.updated_at|date:"d.m.Y H:i" }}</td>
+                <td class="px-5 py-3">
+                    <a href="{% url 'dashboard:chat_detail' session.pk %}" class="text-yellow-600 hover:text-yellow-700 font-semibold text-xs">Открыть →</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="px-5 py-12 text-center text-gray-400">Чатов нет</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% if page_obj.has_other_pages %}
+    <div class="px-5 py-4 border-t border-gray-100 flex justify-between items-center">
+        <p class="text-sm text-gray-500">Стр. {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</p>
+        <div class="flex gap-2">
+            {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-1.5 border border-gray-200 rounded-lg text-sm hover:bg-gray-50">←</a>{% endif %}
+            {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}" class="px-3 py-1.5 border border-gray-200 rounded-lg text-sm hover:bg-gray-50">→</a>{% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

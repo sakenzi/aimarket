@@ -1,0 +1,109 @@
+{% extends "dashboard/base.html" %}
+{% load humanize %}
+
+{% block title %}Заказы{% endblock %}
+{% block page_title %}Заказы{% endblock %}
+
+{% block header_actions %}
+<span class="text-sm text-gray-500 font-medium">Всего: {{ total }}</span>
+{% endblock %}
+
+{% block content %}
+<!-- Filters -->
+<form method="get" class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 mb-6 flex flex-wrap gap-3 items-end">
+    <div>
+        <label class="text-xs font-bold text-gray-500 block mb-1">Поиск</label>
+        <input type="text" name="q" value="{{ search }}" placeholder="Номер, имя, email..."
+               class="px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-yellow-400 w-52">
+    </div>
+    <div>
+        <label class="text-xs font-bold text-gray-500 block mb-1">Статус</label>
+        <select name="status" class="px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-yellow-400">
+            <option value="">Все</option>
+            {% for value, label in status_choices %}
+            <option value="{{ value }}" {% if current_status == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div>
+        <label class="text-xs font-bold text-gray-500 block mb-1">Дата от</label>
+        <input type="date" name="date_from" value="{{ request.GET.date_from }}"
+               class="px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-yellow-400">
+    </div>
+    <div>
+        <label class="text-xs font-bold text-gray-500 block mb-1">Дата до</label>
+        <input type="date" name="date_to" value="{{ request.GET.date_to }}"
+               class="px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-yellow-400">
+    </div>
+    <button type="submit" class="px-5 py-2 bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold rounded-xl text-sm transition">Найти</button>
+    <a href="{% url 'dashboard:orders' %}" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 font-medium rounded-xl text-sm transition">Сбросить</a>
+</form>
+
+<!-- Table -->
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+    <table class="w-full text-sm">
+        <thead class="bg-gray-50 border-b border-gray-100">
+            <tr>
+                <th class="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Заказ</th>
+                <th class="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Покупатель</th>
+                <th class="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider hidden md:table-cell">Товары</th>
+                <th class="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Сумма</th>
+                <th class="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Статус</th>
+                <th class="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider hidden lg:table-cell">Дата</th>
+                <th class="px-5 py-3"></th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50">
+            {% for order in page_obj %}
+            <tr class="hover:bg-gray-50 transition">
+                <td class="px-5 py-3">
+                    <p class="font-bold text-gray-900">#{{ order.order_number }}</p>
+                </td>
+                <td class="px-5 py-3">
+                    <p class="font-medium text-gray-900">{{ order.full_name }}</p>
+                    <p class="text-xs text-gray-400">{{ order.user.email }}</p>
+                </td>
+                <td class="px-5 py-3 hidden md:table-cell text-gray-500">{{ order.items.count }} шт.</td>
+                <td class="px-5 py-3 font-black text-gray-900">{{ order.total|floatformat:0|intcomma }}₽</td>
+                <td class="px-5 py-3">
+                    <span class="badge
+                        {% if order.status == 'delivered' %}bg-green-100 text-green-700
+                        {% elif order.status == 'shipped' %}bg-purple-100 text-purple-700
+                        {% elif order.status == 'processing' %}bg-blue-100 text-blue-700
+                        {% elif order.status == 'paid' %}bg-indigo-100 text-indigo-700
+                        {% elif order.status == 'cancelled' %}bg-red-100 text-red-700
+                        {% elif order.status == 'refunded' %}bg-gray-100 text-gray-600
+                        {% else %}bg-yellow-100 text-yellow-700{% endif %}">
+                        {{ order.get_status_display }}
+                    </span>
+                </td>
+                <td class="px-5 py-3 text-gray-400 text-xs hidden lg:table-cell">{{ order.created_at|date:"d.m.Y H:i" }}</td>
+                <td class="px-5 py-3">
+                    <a href="{% url 'dashboard:order_detail' order.pk %}"
+                       class="text-yellow-600 hover:text-yellow-700 font-semibold text-xs">Открыть →</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="7" class="px-5 py-12 text-center text-gray-400">Заказов не найдено</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <div class="px-5 py-4 border-t border-gray-100 flex items-center justify-between">
+        <p class="text-sm text-gray-500">Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</p>
+        <div class="flex gap-2">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode }}"
+               class="px-3 py-1.5 border border-gray-200 rounded-lg text-sm hover:bg-gray-50 transition">←</a>
+            {% endif %}
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode }}"
+               class="px-3 py-1.5 border border-gray-200 rounded-lg text-sm hover:bg-gray-50 transition">→</a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

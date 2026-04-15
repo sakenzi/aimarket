@@ -78,7 +78,7 @@ def dashboard_home(request):
     top_products = (
         Product.objects
         .filter(is_active=True)
-        .annotate(revenue=Sum('orders__price'))
+        .annotate(revenue=Sum('orderitem__price'))
         .order_by('-revenue')[:5]
     )
 
