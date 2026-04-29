@@ -1,36 +1,36 @@
 {% extends "dashboard/base.html" %}
 {% load humanize %}
 
-{% block title %}Товары{% endblock %}
-{% block page_title %}Товары{% endblock %}
+{% block title %}{{ ui.items }}{% endblock %}
+{% block page_title %}{{ ui.items }}{% endblock %}
 
 {% block content %}
 <!-- Filters -->
 <form method="get" class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 mb-6 flex flex-wrap gap-3 items-end">
     <div>
-        <label class="text-xs font-bold text-gray-500 block mb-1">Поиск</label>
-        <input type="text" name="q" value="{{ search }}" placeholder="Название, артикул..."
+        <label class="text-xs font-bold text-gray-500 block mb-1">{{ ui.search }}</label>
+        <input type="text" name="q" value="{{ search }}" placeholder="{{ ui.name }}, {{ ui.product_sku|lower }}..."
                class="px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-yellow-400 w-52">
     </div>
     <div>
-        <label class="text-xs font-bold text-gray-500 block mb-1">Категория</label>
+        <label class="text-xs font-bold text-gray-500 block mb-1">{{ ui.category }}</label>
         <select name="category" class="px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-yellow-400">
-            <option value="">Все</option>
+            <option value="">{{ ui.all }}</option>
             {% for cat in categories %}
             <option value="{{ cat.id }}" {% if request.GET.category == cat.id|stringformat:"s" %}selected{% endif %}>{{ cat.name }}</option>
             {% endfor %}
         </select>
     </div>
     <div>
-        <label class="text-xs font-bold text-gray-500 block mb-1">Склад</label>
+        <label class="text-xs font-bold text-gray-500 block mb-1">{{ ui.stock }}</label>
         <select name="stock" class="px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-yellow-400">
-            <option value="">Все</option>
-            <option value="low" {% if request.GET.stock == 'low' %}selected{% endif %}>Заканчивается (≤5)</option>
-            <option value="out" {% if request.GET.stock == 'out' %}selected{% endif %}>Нет в наличии</option>
+            <option value="">{{ ui.all }}</option>
+            <option value="low" {% if request.GET.stock == 'low' %}selected{% endif %}>{{ ui.low_stock_filter }}</option>
+            <option value="out" {% if request.GET.stock == 'out' %}selected{% endif %}>{{ ui.out_of_stock }}</option>
         </select>
     </div>
-    <button type="submit" class="px-5 py-2 bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold rounded-xl text-sm transition">Найти</button>
-    <a href="{% url 'dashboard:products' %}" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 font-medium rounded-xl text-sm transition">Сбросить</a>
+    <button type="submit" class="px-5 py-2 bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold rounded-xl text-sm transition">{{ ui.search_button }}</button>
+    <a href="{% url 'dashboard:products' %}" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 font-medium rounded-xl text-sm transition">{{ ui.reset }}</a>
 </form>
 
 <!-- Table -->
@@ -38,12 +38,12 @@
     <table class="w-full text-sm">
         <thead class="bg-gray-50 border-b border-gray-100">
             <tr>
-                <th class="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Товар</th>
-                <th class="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider hidden md:table-cell">Категория</th>
-                <th class="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Цена</th>
-                <th class="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Склад</th>
-                <th class="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider hidden lg:table-cell">Рейтинг</th>
-                <th class="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Активен</th>
+                <th class="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">{{ ui.product }}</th>
+                <th class="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider hidden md:table-cell">{{ ui.category }}</th>
+                <th class="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">{{ ui.price }}</th>
+                <th class="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">{{ ui.stock }}</th>
+                <th class="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider hidden lg:table-cell">{{ ui.rating }}</th>
+                <th class="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">{{ ui.active_col }}</th>
                 <th class="px-5 py-3"></th>
             </tr>
         </thead>
@@ -74,9 +74,9 @@
                                data-product-id="{{ product.pk }}"
                                onchange="updateStock('{{ product.pk }}', this.value)">
                         {% if product.stock == 0 %}
-                        <span class="text-xs text-red-500 font-bold">нет</span>
+                        <span class="text-xs text-red-500 font-bold">{{ ui.no_stock_short }}</span>
                         {% elif product.stock <= 5 %}
-                        <span class="text-xs text-orange-500 font-bold">мало</span>
+                        <span class="text-xs text-orange-500 font-bold">{{ ui.low_stock_short }}</span>
                         {% endif %}
                     </div>
                 </td>
@@ -88,7 +88,7 @@
                         <span class="text-gray-400 text-xs">({{ product.reviews_count }})</span>
                     </div>
                     {% else %}
-                    <span class="text-gray-300 text-xs">нет отзывов</span>
+                    <span class="text-gray-300 text-xs">{{ ui.no_reviews_short }}</span>
                     {% endif %}
                 </td>
                 <td class="px-5 py-3">
@@ -106,14 +106,14 @@
                 </td>
             </tr>
             {% empty %}
-            <tr><td colspan="7" class="px-5 py-12 text-center text-gray-400">Товаров не найдено</td></tr>
+            <tr><td colspan="7" class="px-5 py-12 text-center text-gray-400">{{ ui.products_not_found }}</td></tr>
             {% endfor %}
         </tbody>
     </table>
 
     {% if page_obj.has_other_pages %}
     <div class="px-5 py-4 border-t border-gray-100 flex items-center justify-between">
-        <p class="text-sm text-gray-500">Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</p>
+        <p class="text-sm text-gray-500">{{ ui.page }} {{ page_obj.number }} {{ ui.of }} {{ page_obj.paginator.num_pages }}</p>
         <div class="flex gap-2">
             {% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode }}" class="px-3 py-1.5 border border-gray-200 rounded-lg text-sm hover:bg-gray-50">←</a>{% endif %}
             {% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode }}" class="px-3 py-1.5 border border-gray-200 rounded-lg text-sm hover:bg-gray-50">→</a>{% endif %}
@@ -135,7 +135,7 @@ async function toggleProduct(productId) {
 
 async function updateStock(productId, value) {
     const data = await ajaxPost(`/dashboard/products/${productId}/stock/`, { stock: value });
-    if (!data.success) alert('Ошибка обновления склада');
+    if (!data.success) alert('{{ ui.stock_update_error|escapejs }}');
 }
 </script>
 {% endblock %}

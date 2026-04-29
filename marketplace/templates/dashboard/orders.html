@@ -1,42 +1,43 @@
 {% extends "dashboard/base.html" %}
 {% load humanize %}
+{% load ui_extras %}
 
-{% block title %}Заказы{% endblock %}
-{% block page_title %}Заказы{% endblock %}
+{% block title %}{{ ui.orders }}{% endblock %}
+{% block page_title %}{{ ui.orders }}{% endblock %}
 
 {% block header_actions %}
-<span class="text-sm text-gray-500 font-medium">Всего: {{ total }}</span>
+<span class="text-sm text-gray-500 font-medium">{{ ui.total }}: {{ total }}</span>
 {% endblock %}
 
 {% block content %}
 <!-- Filters -->
 <form method="get" class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 mb-6 flex flex-wrap gap-3 items-end">
     <div>
-        <label class="text-xs font-bold text-gray-500 block mb-1">Поиск</label>
-        <input type="text" name="q" value="{{ search }}" placeholder="Номер, имя, email..."
+        <label class="text-xs font-bold text-gray-500 block mb-1">{{ ui.search }}</label>
+        <input type="text" name="q" value="{{ search }}" placeholder="#, {{ ui.name|lower }}, email..."
                class="px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-yellow-400 w-52">
     </div>
     <div>
-        <label class="text-xs font-bold text-gray-500 block mb-1">Статус</label>
+        <label class="text-xs font-bold text-gray-500 block mb-1">{{ ui.status }}</label>
         <select name="status" class="px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-yellow-400">
-            <option value="">Все</option>
+            <option value="">{{ ui.all }}</option>
             {% for value, label in status_choices %}
-            <option value="{{ value }}" {% if current_status == value %}selected{% endif %}>{{ label }}</option>
+            <option value="{{ value }}" {% if current_status == value %}selected{% endif %}>{{ ui.order_status_labels|get_item:value|default:label }}</option>
             {% endfor %}
         </select>
     </div>
     <div>
-        <label class="text-xs font-bold text-gray-500 block mb-1">Дата от</label>
+        <label class="text-xs font-bold text-gray-500 block mb-1">{{ ui.date_from }}</label>
         <input type="date" name="date_from" value="{{ request.GET.date_from }}"
                class="px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-yellow-400">
     </div>
     <div>
-        <label class="text-xs font-bold text-gray-500 block mb-1">Дата до</label>
+        <label class="text-xs font-bold text-gray-500 block mb-1">{{ ui.date_to }}</label>
         <input type="date" name="date_to" value="{{ request.GET.date_to }}"
                class="px-3 py-2 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-yellow-400">
     </div>
-    <button type="submit" class="px-5 py-2 bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold rounded-xl text-sm transition">Найти</button>
-    <a href="{% url 'dashboard:orders' %}" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 font-medium rounded-xl text-sm transition">Сбросить</a>
+    <button type="submit" class="px-5 py-2 bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold rounded-xl text-sm transition">{{ ui.search_button }}</button>
+    <a href="{% url 'dashboard:orders' %}" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-600 font-medium rounded-xl text-sm transition">{{ ui.reset }}</a>
 </form>
 
 <!-- Table -->
@@ -44,12 +45,12 @@
     <table class="w-full text-sm">
         <thead class="bg-gray-50 border-b border-gray-100">
             <tr>
-                <th class="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Заказ</th>
-                <th class="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Покупатель</th>
-                <th class="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider hidden md:table-cell">Товары</th>
-                <th class="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Сумма</th>
-                <th class="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">Статус</th>
-                <th class="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider hidden lg:table-cell">Дата</th>
+                <th class="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">{{ ui.order }}</th>
+                <th class="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">{{ ui.buyer }}</th>
+                <th class="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider hidden md:table-cell">{{ ui.items }}</th>
+                <th class="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">{{ ui.sum }}</th>
+                <th class="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider">{{ ui.status }}</th>
+                <th class="text-left px-5 py-3 text-xs font-bold text-gray-500 uppercase tracking-wider hidden lg:table-cell">{{ ui.date }}</th>
                 <th class="px-5 py-3"></th>
             </tr>
         </thead>
@@ -63,7 +64,7 @@
                     <p class="font-medium text-gray-900">{{ order.full_name }}</p>
                     <p class="text-xs text-gray-400">{{ order.user.email }}</p>
                 </td>
-                <td class="px-5 py-3 hidden md:table-cell text-gray-500">{{ order.items.count }} шт.</td>
+                <td class="px-5 py-3 hidden md:table-cell text-gray-500">{{ order.items.count }} {{ ui.pcs }}</td>
                 <td class="px-5 py-3 font-black text-gray-900">{{ order.total|floatformat:0|intcomma }}₽</td>
                 <td class="px-5 py-3">
                     <span class="badge
@@ -74,17 +75,17 @@
                         {% elif order.status == 'cancelled' %}bg-red-100 text-red-700
                         {% elif order.status == 'refunded' %}bg-gray-100 text-gray-600
                         {% else %}bg-yellow-100 text-yellow-700{% endif %}">
-                        {{ order.get_status_display }}
+                        {{ ui.order_status_labels|get_item:order.status|default:order.get_status_display }}
                     </span>
                 </td>
                 <td class="px-5 py-3 text-gray-400 text-xs hidden lg:table-cell">{{ order.created_at|date:"d.m.Y H:i" }}</td>
                 <td class="px-5 py-3">
                     <a href="{% url 'dashboard:order_detail' order.pk %}"
-                       class="text-yellow-600 hover:text-yellow-700 font-semibold text-xs">Открыть →</a>
+                       class="text-yellow-600 hover:text-yellow-700 font-semibold text-xs">{{ ui.open }}</a>
                 </td>
             </tr>
             {% empty %}
-            <tr><td colspan="7" class="px-5 py-12 text-center text-gray-400">Заказов не найдено</td></tr>
+            <tr><td colspan="7" class="px-5 py-12 text-center text-gray-400">{{ ui.orders_not_found }}</td></tr>
             {% endfor %}
         </tbody>
     </table>
@@ -92,7 +93,7 @@
     <!-- Pagination -->
     {% if page_obj.has_other_pages %}
     <div class="px-5 py-4 border-t border-gray-100 flex items-center justify-between">
-        <p class="text-sm text-gray-500">Страница {{ page_obj.number }} из {{ page_obj.paginator.num_pages }}</p>
+        <p class="text-sm text-gray-500">{{ ui.page }} {{ page_obj.number }} {{ ui.of }} {{ page_obj.paginator.num_pages }}</p>
         <div class="flex gap-2">
             {% if page_obj.has_previous %}
             <a href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode }}"

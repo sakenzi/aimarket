@@ -1,6 +1,6 @@
 {% extends "base/base.html" %}
 
-{% block title %}AI Помощник{% endblock %}
+{% block title %}{{ ui.ai_assistant }}{% endblock %}
 
 {% block extra_head %}
 <style>
@@ -21,8 +21,8 @@
     <aside class="w-64 shrink-0 hidden lg:flex flex-col">
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 flex-1 overflow-hidden flex flex-col">
             <div class="p-4 border-b border-gray-100 flex justify-between items-center">
-                <h3 class="font-black text-gray-900 text-sm">История чатов</h3>
-                <button onclick="newChat()" class="text-yellow-600 hover:text-yellow-700 text-xs font-semibold transition">+ Новый</button>
+                <h3 class="font-black text-gray-900 text-sm">{{ ui.chat_history }}</h3>
+                <button onclick="newChat()" class="text-yellow-600 hover:text-yellow-700 text-xs font-semibold transition">{{ ui.new_chat }}</button>
             </div>
             <div class="flex-1 overflow-y-auto p-2 space-y-1">
                 {% for s in sessions %}
@@ -44,18 +44,18 @@
             <div class="flex items-center gap-3">
                 <div class="w-10 h-10 bg-gray-900 rounded-xl flex items-center justify-center text-yellow-400 font-black text-lg">AI</div>
                 <div>
-                    <p class="font-black text-gray-900 text-sm">YMarket AI Помощник</p>
+                    <p class="font-black text-gray-900 text-sm">{{ ui.ymarket_ai }}</p>
                     <div class="flex items-center gap-1.5">
                         <div class="w-2 h-2 rounded-full {% if ollama_available %}bg-green-500{% else %}bg-red-400{% endif %}"></div>
                         <span class="text-xs text-gray-700 font-medium">
-                            {% if ollama_available %}Онлайн{% else %}Ограниченный режим{% endif %}
+                            {% if ollama_available %}{{ ui.online }}{% else %}{{ ui.limited_mode }}{% endif %}
                         </span>
                     </div>
                 </div>
             </div>
             <div class="flex gap-2">
                 <button onclick="newChat()" class="bg-gray-900 text-yellow-400 text-xs font-semibold px-3 py-1.5 rounded-lg hover:bg-gray-700 transition">
-                    + Новый чат
+                    {{ ui.new_chat }}
                 </button>
             </div>
         </div>
@@ -66,10 +66,10 @@
             <!-- Welcome -->
             <div class="text-center py-12">
                 <div class="text-6xl mb-4">🤖</div>
-                <h2 class="text-2xl font-black text-gray-900 mb-2">Привет! Я AI-помощник</h2>
-                <p class="text-gray-500 text-sm mb-8">Помогу найти товары, расскажу о характеристиках и дам рекомендации</p>
+                <h2 class="text-2xl font-black text-gray-900 mb-2">{{ ui.hello_ai }}</h2>
+                <p class="text-gray-500 text-sm mb-8">{{ ui.ai_intro }}</p>
                 <div class="flex flex-wrap justify-center gap-2">
-                    {% for suggestion in "Найти смартфон до 30000₸,Лучшие ноутбуки для работы,Подобрать подарок на день рождения,Сравнить наушники,Что популярно сейчас?" %}
+                    {% for suggestion in ui.suggestions %}
                     <button onclick="setMessage('{{ suggestion }}')"
                             class="bg-yellow-50 hover:bg-yellow-100 text-gray-700 text-sm px-4 py-2 rounded-xl transition border border-yellow-200 hover:border-yellow-300">
                         {{ suggestion }}
@@ -87,7 +87,7 @@
                     {{ msg.content|linebreaks }}
                 </div>
                 {% if msg.role == 'user' %}
-                <div class="w-8 h-8 bg-yellow-500 rounded-xl flex items-center justify-center text-white font-bold text-xs shrink-0 mt-1 ml-2">Я</div>
+                <div class="w-8 h-8 bg-yellow-500 rounded-xl flex items-center justify-center text-white font-bold text-xs shrink-0 mt-1 ml-2">{{ ui.you_short }}</div>
                 {% endif %}
             </div>
             {% endfor %}
@@ -108,7 +108,7 @@
 
         <!-- Suggested products area -->
         <div id="products-area" class="hidden border-t border-gray-100 p-4 bg-gray-50">
-            <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Найденные товары</p>
+            <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">{{ ui.found_products }}</p>
             <div id="products-list" class="flex gap-3 overflow-x-auto pb-1"></div>
         </div>
 
@@ -117,7 +117,7 @@
             <div class="flex gap-3 items-end">
                 <textarea
                     id="message-input"
-                    placeholder="Спросите что-нибудь о товарах... (Enter для отправки)"
+                    placeholder="{{ ui.chat_placeholder }}"
                     class="flex-1 px-4 py-3 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-yellow-400 outline-none resize-none min-h-[48px] max-h-32 transition"
                     rows="1"
                     onkeydown="handleKeyDown(event)"
@@ -133,7 +133,7 @@
                     </svg>
                 </button>
             </div>
-            <p class="text-xs text-gray-400 mt-2 text-center">AI работает на Ollama · Ответы генерируются локально · Не является финансовым советом</p>
+            <p class="text-xs text-gray-400 mt-2 text-center">{{ ui.ai_disclaimer }}</p>
         </div>
     </div>
 </div>
@@ -144,6 +144,12 @@
 const CSRF = document.cookie.match(/csrftoken=([^;]+)/)?.[1] || '';
 let currentSessionId = {{ session.id }};
 const messagesArea = document.getElementById('messages-area');
+const UI = {
+    youShort: '{{ ui.you_short|escapejs }}',
+    aiError: '{{ ui.ai_error|escapejs }}',
+    newChatStarted: '{{ ui.new_chat_started|escapejs }}',
+    askAboutProducts: '{{ ui.ask_about_products|escapejs }}'
+};
 
 function scrollToBottom() {
     messagesArea.scrollTop = messagesArea.scrollHeight;
@@ -174,7 +180,7 @@ function addMessage(role, content) {
     div.innerHTML = `
         ${!isUser ? '<div class="w-8 h-8 bg-gray-900 rounded-xl flex items-center justify-center text-yellow-400 font-bold text-xs shrink-0 mt-1 mr-2">AI</div>' : ''}
         <div class="max-w-lg ${isUser ? 'bg-yellow-400 text-gray-900' : 'bg-gray-50 text-gray-800 border border-gray-100'} rounded-2xl px-5 py-3.5 text-sm leading-relaxed whitespace-pre-wrap">${content}</div>
-        ${isUser ? '<div class="w-8 h-8 bg-yellow-500 rounded-xl flex items-center justify-center text-white font-bold text-xs shrink-0 mt-1 ml-2">Я</div>' : ''}
+        ${isUser ? `<div class="w-8 h-8 bg-yellow-500 rounded-xl flex items-center justify-center text-white font-bold text-xs shrink-0 mt-1 ml-2">${UI.youShort}</div>` : ''}
     `;
     document.getElementById('typing-indicator').before(div);
     scrollToBottom();
@@ -241,7 +247,7 @@ async function sendMessage() {
         }
     } catch (err) {
         document.getElementById('typing-indicator').classList.add('hidden');
-        addMessage('assistant', '⚠️ Не удалось получить ответ. Попробуйте ещё раз.');
+        addMessage('assistant', UI.aiError);
     } finally {
         btn.disabled = false;
         input.focus();
@@ -258,8 +264,8 @@ async function newChat() {
     messagesArea.innerHTML = `
         <div class="text-center py-12">
             <div class="text-6xl mb-4">🤖</div>
-            <h2 class="text-2xl font-black text-gray-900 mb-2">Новый чат начат!</h2>
-            <p class="text-gray-500 text-sm">Спросите меня о товарах</p>
+            <h2 class="text-2xl font-black text-gray-900 mb-2">${UI.newChatStarted}</h2>
+            <p class="text-gray-500 text-sm">${UI.askAboutProducts}</p>
         </div>
         <div id="typing-indicator" class="hidden flex items-center gap-2">
             <div class="w-8 h-8 bg-gray-900 rounded-xl flex items-center justify-center text-yellow-400 font-bold text-xs">AI</div>
@@ -294,7 +300,7 @@ async function loadSession(sessionId) {
         <div class="chat-msg flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}">
             ${m.role !== 'user' ? '<div class="w-8 h-8 bg-gray-900 rounded-xl flex items-center justify-center text-yellow-400 font-bold text-xs shrink-0 mt-1 mr-2">AI</div>' : ''}
             <div class="max-w-lg ${m.role === 'user' ? 'bg-yellow-400 text-gray-900' : 'bg-gray-50 text-gray-800 border border-gray-100'} rounded-2xl px-5 py-3.5 text-sm leading-relaxed whitespace-pre-wrap">${m.content}</div>
-            ${m.role === 'user' ? '<div class="w-8 h-8 bg-yellow-500 rounded-xl flex items-center justify-center text-white font-bold text-xs shrink-0 mt-1 ml-2">Я</div>' : ''}
+            ${m.role === 'user' ? `<div class="w-8 h-8 bg-yellow-500 rounded-xl flex items-center justify-center text-white font-bold text-xs shrink-0 mt-1 ml-2">${UI.youShort}</div>` : ''}
         </div>
     `).join('') + indicator;
     scrollToBottom();

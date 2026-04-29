@@ -1,21 +1,21 @@
 {% extends "base/base.html" %}
 {% load humanize %}
 
-{% block title %}{% if category %}{{ category.name }}{% elif search_query %}Поиск: {{ search_query }}{% else %}Каталог{% endif %}{% endblock %}
+{% block title %}{% if category %}{{ category.name }}{% elif search_query %}{{ ui.search }}: {{ search_query }}{% else %}{{ ui.catalog }}{% endif %}{% endblock %}
 
 {% block content %}
 <div class="max-w-7xl mx-auto px-4 py-8">
     <!-- Breadcrumb -->
     <nav class="flex items-center gap-2 text-sm text-gray-500 mb-6">
-        <a href="{% url 'products:home' %}" class="hover:text-yellow-600 transition">Главная</a>
+        <a href="{% url 'products:home' %}" class="hover:text-yellow-600 transition">{{ ui.home }}</a>
         <span>/</span>
-        <a href="{% url 'products:catalog' %}" class="hover:text-yellow-600 transition">Каталог</a>
+        <a href="{% url 'products:catalog' %}" class="hover:text-yellow-600 transition">{{ ui.catalog }}</a>
         {% if category %}
         <span>/</span>
         <span class="text-gray-900 font-medium">{{ category.name }}</span>
         {% elif search_query %}
         <span>/</span>
-        <span class="text-gray-900 font-medium">Поиск: "{{ search_query }}"</span>
+        <span class="text-gray-900 font-medium">{{ ui.search }}: "{{ search_query }}"</span>
         {% endif %}
     </nav>
 
@@ -23,25 +23,25 @@
         <!-- Sidebar Filters -->
         <aside class="w-64 shrink-0 hidden md:block">
             <div class="bg-white rounded-2xl shadow-sm p-5 sticky top-24 border border-gray-100">
-                <h3 class="font-black text-lg text-gray-900 mb-5">Фильтры</h3>
+                <h3 class="font-black text-lg text-gray-900 mb-5">{{ ui.filters }}</h3>
                 <form method="get" id="filter-form">
                     {% if request.GET.category %}<input type="hidden" name="category" value="{{ request.GET.category }}">{% endif %}
                     {% if search_query %}<input type="hidden" name="q" value="{{ search_query }}">{% endif %}
 
                     <!-- Price Range -->
                     <div class="mb-5">
-                        <label class="text-sm font-bold text-gray-700 block mb-3">Цена, ₸</label>
+                        <label class="text-sm font-bold text-gray-700 block mb-3">{{ ui.price }}</label>
                         <div class="flex gap-2">
-                            <input type="number" name="price_min" value="{{ request.GET.price_min }}" placeholder="От"
+                            <input type="number" name="price_min" value="{{ request.GET.price_min }}" placeholder="{{ ui.from_label }}"
                                    class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-yellow-400 outline-none">
-                            <input type="number" name="price_max" value="{{ request.GET.price_max }}" placeholder="До"
+                            <input type="number" name="price_max" value="{{ request.GET.price_max }}" placeholder="{{ ui.to_label }}"
                                    class="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-yellow-400 outline-none">
                         </div>
                     </div>
 
                     <!-- Rating -->
                     <div class="mb-5">
-                        <label class="text-sm font-bold text-gray-700 block mb-3">Рейтинг</label>
+                        <label class="text-sm font-bold text-gray-700 block mb-3">{{ ui.rating }}</label>
                         <div class="space-y-2">
                             <label class="flex items-center gap-2 cursor-pointer">
                                 <input type="radio" name="rating" value="4" {% if request.GET.rating == "4" %}checked{% endif %} class="accent-yellow-400"> <span class="text-sm text-gray-600">⭐⭐⭐⭐ 4+</span>
@@ -50,7 +50,7 @@
                                 <input type="radio" name="rating" value="3" {% if request.GET.rating == "3" %}checked{% endif %} class="accent-yellow-400"> <span class="text-sm text-gray-600">⭐⭐⭐ 3+</span>
                             </label>
                             <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="radio" name="rating" value="" class="accent-yellow-400"> <span class="text-sm text-gray-600">Любой</span>
+                                <input type="radio" name="rating" value="" class="accent-yellow-400"> <span class="text-sm text-gray-600">{{ ui.any }}</span>
                             </label>
                         </div>
                     </div>
@@ -60,16 +60,16 @@
                         <label class="flex items-center gap-3 cursor-pointer">
                             <input type="checkbox" name="in_stock" value="1" {% if request.GET.in_stock %}checked{% endif %}
                                    class="w-4 h-4 accent-yellow-400 rounded">
-                            <span class="text-sm font-medium text-gray-700">Только в наличии</span>
+                            <span class="text-sm font-medium text-gray-700">{{ ui.in_stock_only }}</span>
                         </label>
                     </div>
 
                     <button type="submit" class="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold py-2.5 rounded-xl transition">
-                        Применить
+                        {{ ui.apply }}
                     </button>
                     <a href="{% url 'products:catalog' %}{% if category %}?category={{ category.slug }}{% endif %}"
                        class="block w-full text-center mt-2 text-sm text-gray-500 hover:text-gray-700 transition py-2">
-                        Сбросить фильтры
+                        {{ ui.reset_filters }}
                     </a>
                 </form>
             </div>
@@ -82,20 +82,20 @@
                 <div>
                     <h1 class="text-2xl font-black text-gray-900">
                         {% if category %}{{ category.name }}
-                        {% elif search_query %}Результаты для "{{ search_query }}"
-                        {% else %}Все товары{% endif %}
+                        {% elif search_query %}{{ ui.results_for }} "{{ search_query }}"
+                        {% else %}{{ ui.all_products }}{% endif %}
                     </h1>
-                    <p class="text-sm text-gray-500 mt-1">{{ total_count|intcomma }} товаров</p>
+                    <p class="text-sm text-gray-500 mt-1">{{ total_count|intcomma }} {{ ui.products_count }}</p>
                 </div>
                 <!-- Sort -->
                 <select onchange="window.location.href=this.value"
                         class="px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-yellow-400 outline-none cursor-pointer">
-                    <option value="?{% if filter_params %}{{ filter_params }}&{% endif %}sort=new" {% if sort == 'new' or not sort %}selected{% endif %}>Новинки</option>
-                    <option value="?{% if filter_params %}{{ filter_params }}&{% endif %}sort=popular" {% if sort == 'popular' %}selected{% endif %}>По популярности</option>
-                    <option value="?{% if filter_params %}{{ filter_params }}&{% endif %}sort=rating" {% if sort == 'rating' %}selected{% endif %}>По рейтингу</option>
-                    <option value="?{% if filter_params %}{{ filter_params }}&{% endif %}sort=price_asc" {% if sort == 'price_asc' %}selected{% endif %}>Цена ↑</option>
-                    <option value="?{% if filter_params %}{{ filter_params }}&{% endif %}sort=price_desc" {% if sort == 'price_desc' %}selected{% endif %}>Цена ↓</option>
-                    <option value="?{% if filter_params %}{{ filter_params }}&{% endif %}sort=reviews" {% if sort == 'reviews' %}selected{% endif %}>По отзывам</option>
+                    <option value="?{% if filter_params %}{{ filter_params }}&{% endif %}sort=new" {% if sort == 'new' or not sort %}selected{% endif %}>{{ ui.sort_new }}</option>
+                    <option value="?{% if filter_params %}{{ filter_params }}&{% endif %}sort=popular" {% if sort == 'popular' %}selected{% endif %}>{{ ui.sort_popular }}</option>
+                    <option value="?{% if filter_params %}{{ filter_params }}&{% endif %}sort=rating" {% if sort == 'rating' %}selected{% endif %}>{{ ui.sort_rating }}</option>
+                    <option value="?{% if filter_params %}{{ filter_params }}&{% endif %}sort=price_asc" {% if sort == 'price_asc' %}selected{% endif %}>{{ ui.sort_price_asc }}</option>
+                    <option value="?{% if filter_params %}{{ filter_params }}&{% endif %}sort=price_desc" {% if sort == 'price_desc' %}selected{% endif %}>{{ ui.sort_price_desc }}</option>
+                    <option value="?{% if filter_params %}{{ filter_params }}&{% endif %}sort=reviews" {% if sort == 'reviews' %}selected{% endif %}>{{ ui.sort_reviews }}</option>
                 </select>
             </div>
 
@@ -109,11 +109,11 @@
 
             <!-- Pagination -->
             {% if page_obj.has_other_pages %}
-            <nav class="flex items-center justify-center gap-2 mt-8" aria-label="Пагинация">
+            <nav class="flex items-center justify-center gap-2 mt-8" aria-label="{{ ui.pagination }}">
                 {% if page_obj.has_previous %}
                 <a href="?{{ filter_params }}&page={{ page_obj.previous_page_number }}"
                    class="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-xl hover:bg-yellow-50 hover:border-yellow-300 transition text-sm font-medium">
-                    ← Назад
+                    {{ ui.back }}
                 </a>
                 {% endif %}
 
@@ -134,7 +134,7 @@
                 {% if page_obj.has_next %}
                 <a href="?{{ filter_params }}&page={{ page_obj.next_page_number }}"
                    class="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-xl hover:bg-yellow-50 hover:border-yellow-300 transition text-sm font-medium">
-                    Вперёд →
+                    {{ ui.forward }}
                 </a>
                 {% endif %}
             </nav>
@@ -143,11 +143,11 @@
             {% else %}
             <div class="text-center py-24">
                 <div class="text-8xl mb-6 opacity-30">🔍</div>
-                <h3 class="text-2xl font-black text-gray-700 mb-3">Ничего не найдено</h3>
-                <p class="text-gray-500 mb-8">Попробуйте изменить запрос или сбросить фильтры</p>
+                <h3 class="text-2xl font-black text-gray-700 mb-3">{{ ui.nothing_found }}</h3>
+                <p class="text-gray-500 mb-8">{{ ui.try_change_query }}</p>
                 <div class="flex gap-4 justify-center">
-                    <a href="{% url 'products:catalog' %}" class="btn-primary">Все товары</a>
-                    <a href="{% url 'ai_chat:chat' %}" class="btn-secondary">🤖 Спросить AI</a>
+                    <a href="{% url 'products:catalog' %}" class="btn-primary">{{ ui.all_products }}</a>
+                    <a href="{% url 'ai_chat:chat' %}" class="btn-secondary">{{ ui.ask_ai }}</a>
                 </div>
             </div>
             {% endif %}

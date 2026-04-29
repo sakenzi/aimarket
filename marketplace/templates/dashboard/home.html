@@ -1,32 +1,33 @@
 {% extends "dashboard/base.html" %}
 {% load humanize %}
+{% load ui_extras %}
 
-{% block title %}Дашборд{% endblock %}
-{% block page_title %}Дашборд{% endblock %}
+{% block title %}{{ ui.dashboard }}{% endblock %}
+{% block page_title %}{{ ui.dashboard }}{% endblock %}
 
 {% block content %}
 <!-- Stat Cards -->
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
     <div class="stat-card">
-        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Заказы сегодня</p>
+        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">{{ ui.orders_today }}</p>
         <p class="text-3xl font-black text-gray-900">{{ stats.orders_today }}</p>
-        <p class="text-xs text-gray-500 mt-1">За месяц: {{ stats.orders_month }}</p>
+        <p class="text-xs text-gray-500 mt-1">{{ ui.month }}: {{ stats.orders_month }}</p>
     </div>
     <div class="stat-card">
-        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Выручка сегодня</p>
+        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">{{ ui.revenue_today }}</p>
         <p class="text-3xl font-black text-green-600">{{ stats.revenue_today|floatformat:0|intcomma }}₽</p>
-        <p class="text-xs text-gray-500 mt-1">За месяц: {{ stats.revenue_month|floatformat:0|intcomma }}₽</p>
+        <p class="text-xs text-gray-500 mt-1">{{ ui.month }}: {{ stats.revenue_month|floatformat:0|intcomma }}₽</p>
     </div>
     <div class="stat-card">
-        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Новые пользователи</p>
+        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">{{ ui.new_users }}</p>
         <p class="text-3xl font-black text-blue-600">{{ stats.new_users_month }}</p>
-        <p class="text-xs text-gray-500 mt-1">Всего: {{ stats.total_users }}</p>
+        <p class="text-xs text-gray-500 mt-1">{{ ui.total }}: {{ stats.total_users }}</p>
     </div>
     <div class="stat-card">
-        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Товары в стоке</p>
+        <p class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">{{ ui.products_in_stock }}</p>
         <p class="text-3xl font-black text-gray-900">{{ stats.total_products }}</p>
         <p class="text-xs {% if stats.low_stock %}text-red-500 font-bold{% else %}text-gray-500{% endif %} mt-1">
-            Заканчивается: {{ stats.low_stock }}
+            {{ ui.ending }}: {{ stats.low_stock }}
         </p>
     </div>
 </div>
@@ -37,19 +38,19 @@
     {% if stats.pending_orders %}
     <a href="{% url 'dashboard:orders' %}?status=pending"
        class="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 text-sm font-semibold px-4 py-2.5 rounded-xl hover:bg-red-100 transition">
-        🔔 {{ stats.pending_orders }} заказов ожидают обработки →
+        🔔 {{ stats.pending_orders }} {{ ui.pending_orders_alert }}
     </a>
     {% endif %}
     {% if stats.pending_reviews %}
     <a href="{% url 'dashboard:reviews' %}?approved=0"
        class="flex items-center gap-2 bg-orange-50 border border-orange-200 text-orange-700 text-sm font-semibold px-4 py-2.5 rounded-xl hover:bg-orange-100 transition">
-        ⭐ {{ stats.pending_reviews }} отзывов на модерации →
+        ⭐ {{ stats.pending_reviews }} {{ ui.pending_reviews_alert }}
     </a>
     {% endif %}
     {% if stats.low_stock %}
     <a href="{% url 'dashboard:products' %}?stock=low"
        class="flex items-center gap-2 bg-yellow-50 border border-yellow-200 text-yellow-700 text-sm font-semibold px-4 py-2.5 rounded-xl hover:bg-yellow-100 transition">
-        📦 {{ stats.low_stock }} товаров заканчивается →
+        📦 {{ stats.low_stock }} {{ ui.low_stock_alert }}
     </a>
     {% endif %}
 </div>
@@ -59,13 +60,13 @@
 <div class="grid lg:grid-cols-3 gap-6 mb-8">
     <!-- Revenue chart -->
     <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-        <h2 class="font-black text-gray-900 mb-4">Выручка за 14 дней</h2>
+        <h2 class="font-black text-gray-900 mb-4">{{ ui.revenue_14_days }}</h2>
         <canvas id="revenueChart" height="90"></canvas>
     </div>
 
     <!-- Orders by status -->
     <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-        <h2 class="font-black text-gray-900 mb-4">Статусы заказов</h2>
+        <h2 class="font-black text-gray-900 mb-4">{{ ui.order_statuses }}</h2>
         <div class="space-y-3">
             {% for status, label in status_counts.items %}
             {% with count=status_counts|default:0 %}
@@ -92,8 +93,8 @@
         <div class="space-y-2 mt-2">
             {% for item in status_counts.items %}
             <div class="flex items-center justify-between py-1 border-b border-gray-50 last:border-0">
-                <span class="text-sm text-gray-600">{{ item.1 }}</span>
-                <span class="font-bold text-gray-900 text-sm">{{ item.0 }}</span>
+                <span class="text-sm text-gray-600">{{ ui.order_status_labels|get_item:item.0|default:item.0 }}</span>
+                <span class="font-bold text-gray-900 text-sm">{{ item.1 }}</span>
             </div>
             {% endfor %}
         </div>
@@ -105,8 +106,8 @@
     <!-- Recent Orders -->
     <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-            <h2 class="font-black text-gray-900">Последние заказы</h2>
-            <a href="{% url 'dashboard:orders' %}" class="text-sm text-yellow-600 hover:text-yellow-700 font-semibold">Все →</a>
+            <h2 class="font-black text-gray-900">{{ ui.recent_orders }}</h2>
+            <a href="{% url 'dashboard:orders' %}" class="text-sm text-yellow-600 hover:text-yellow-700 font-semibold">{{ ui.all_link }}</a>
         </div>
         <div class="divide-y divide-gray-50">
             {% for order in recent_orders %}
@@ -122,12 +123,12 @@
                         {% elif order.status == 'cancelled' %}bg-red-100 text-red-700
                         {% elif order.status == 'pending' %}bg-yellow-100 text-yellow-700
                         {% else %}bg-blue-100 text-blue-700{% endif %}">
-                        {{ order.get_status_display }}
+                        {{ ui.order_status_labels|get_item:order.status|default:order.get_status_display }}
                     </span>
                 </div>
             </a>
             {% empty %}
-            <p class="px-6 py-8 text-gray-400 text-sm text-center">Заказов пока нет</p>
+            <p class="px-6 py-8 text-gray-400 text-sm text-center">{{ ui.orders_empty }}</p>
             {% endfor %}
         </div>
     </div>
@@ -135,8 +136,8 @@
     <!-- Top Products -->
     <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
         <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-            <h2 class="font-black text-gray-900">Топ товаров</h2>
-            <a href="{% url 'dashboard:products' %}" class="text-sm text-yellow-600 hover:text-yellow-700 font-semibold">Все →</a>
+            <h2 class="font-black text-gray-900">{{ ui.top_products }}</h2>
+            <a href="{% url 'dashboard:products' %}" class="text-sm text-yellow-600 hover:text-yellow-700 font-semibold">{{ ui.all_link }}</a>
         </div>
         <div class="divide-y divide-gray-50">
             {% for product in top_products %}
@@ -146,17 +147,17 @@
                 </div>
                 <div class="flex-1 min-w-0">
                     <p class="text-sm font-semibold text-gray-900 truncate">{{ product.name }}</p>
-                    <p class="text-xs text-gray-500">⭐ {{ product.avg_rating }} · {{ product.reviews_count }} отз.</p>
+                    <p class="text-xs text-gray-500">⭐ {{ product.avg_rating }} · {{ product.reviews_count }} {{ ui.reviews_word }}</p>
                 </div>
                 <div class="text-right shrink-0">
                     <p class="text-sm font-black text-gray-900">{{ product.price|floatformat:0|intcomma }}₽</p>
                     <p class="text-xs {% if product.stock <= 5 %}text-red-500 font-bold{% else %}text-gray-400{% endif %}">
-                        Склад: {{ product.stock }}
+                        {{ ui.stock }}: {{ product.stock }}
                     </p>
                 </div>
             </div>
             {% empty %}
-            <p class="px-6 py-8 text-gray-400 text-sm text-center">Нет данных</p>
+            <p class="px-6 py-8 text-gray-400 text-sm text-center">{{ ui.no_data }}</p>
             {% endfor %}
         </div>
     </div>
@@ -173,7 +174,7 @@ if (ctx) {
             labels: {{ chart_labels|safe }},
             datasets: [
                 {
-                    label: 'Выручка ₽',
+                    label: '{{ ui.revenue_currency|escapejs }}',
                     data: {{ chart_revenue|safe }},
                     backgroundColor: 'rgba(234, 179, 8, 0.8)',
                     borderColor: 'rgba(234, 179, 8, 1)',
@@ -182,7 +183,7 @@ if (ctx) {
                     yAxisID: 'y',
                 },
                 {
-                    label: 'Заказов',
+                    label: '{{ ui.orders_chart|escapejs }}',
                     data: {{ chart_orders|safe }},
                     type: 'line',
                     borderColor: 'rgba(99, 102, 241, 0.8)',

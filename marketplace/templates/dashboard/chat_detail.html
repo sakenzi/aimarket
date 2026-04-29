@@ -1,9 +1,9 @@
 {% extends "dashboard/base.html" %}
 
-{% block title %}Чат: {{ session.title }}{% endblock %}
+{% block title %}{{ ui.chat }}: {{ session.title }}{% endblock %}
 {% block page_title %}{{ session.title }}{% endblock %}
 {% block breadcrumb %}
-<p class="text-xs text-gray-400 mt-0.5"><a href="{% url 'dashboard:chats' %}" class="hover:text-yellow-600">Чаты</a> / {{ session.title|truncatechars:40 }}</p>
+<p class="text-xs text-gray-400 mt-0.5"><a href="{% url 'dashboard:chats' %}" class="hover:text-yellow-600">{{ ui.ai_chat }}</a> / {{ session.title|truncatechars:40 }}</p>
 {% endblock %}
 
 {% block content %}
@@ -14,8 +14,8 @@
         <div class="flex-1">
             <p class="font-bold text-gray-900 text-sm">{{ session.title }}</p>
             <p class="text-xs text-gray-400">
-                {% if session.user %}{{ session.user.email }}{% else %}Анонимный{% endif %}
-                · {{ chat_messages.count }} сообщений
+                {% if session.user %}{{ session.user.email }}{% else %}{{ ui.anonymous }}{% endif %}
+                · {{ chat_messages.count }} {{ ui.messages_count|lower }}
                 · {{ session.created_at|date:"d.m.Y H:i" }}
             </p>
         </div>
@@ -41,7 +41,7 @@
             {% endif %}
         </div>
         {% empty %}
-        <p class="text-center text-gray-400 py-12">Сообщений нет</p>
+        <p class="text-center text-gray-400 py-12">{{ ui.messages_empty }}</p>
         {% endfor %}
     </div>
 </div>

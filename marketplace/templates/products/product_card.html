@@ -4,7 +4,7 @@
     <div class="absolute top-3 left-3 z-10 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-lg">-{{ product.discount_percent }}%</div>
     {% endif %}
     {% if not product.in_stock %}
-    <div class="absolute top-3 right-3 z-10 bg-gray-500 text-white text-xs font-bold px-2 py-1 rounded-lg">Нет в наличии</div>
+    <div class="absolute top-3 right-3 z-10 bg-gray-500 text-white text-xs font-bold px-2 py-1 rounded-lg">{{ ui.out_of_stock }}</div>
     {% endif %}
 
     <a href="{% url 'products:detail' product.slug %}" class="block overflow-hidden">
@@ -53,12 +53,12 @@
             {% csrf_token %}
             <input type="hidden" name="quantity" value="1">
             <button type="submit" class="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-semibold py-2.5 rounded-xl text-sm transition-all duration-200 hover:shadow-sm">
-                В корзину
+                {{ ui.add_to_cart }}
             </button>
         </form>
         {% else %}
         <button disabled class="w-full bg-gray-100 text-gray-400 font-semibold py-2.5 rounded-xl text-sm cursor-not-allowed">
-            Нет в наличии
+            {{ ui.out_of_stock }}
         </button>
         {% endif %}
     </div>

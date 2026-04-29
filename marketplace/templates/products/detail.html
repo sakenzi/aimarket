@@ -1,5 +1,6 @@
 {% extends "base/base.html" %}
 {% load humanize %}
+{% load ui_extras %}
 
 {% block title %}{{ product.name }}{% endblock %}
 
@@ -7,9 +8,9 @@
 <div class="max-w-7xl mx-auto px-4 py-8">
     <!-- Breadcrumb -->
     <nav class="flex items-center gap-2 text-sm text-gray-500 mb-6 flex-wrap">
-        <a href="{% url 'products:home' %}" class="hover:text-yellow-600 transition">Главная</a>
+        <a href="{% url 'products:home' %}" class="hover:text-yellow-600 transition">{{ ui.home }}</a>
         <span>/</span>
-        <a href="{% url 'products:catalog' %}" class="hover:text-yellow-600 transition">Каталог</a>
+        <a href="{% url 'products:catalog' %}" class="hover:text-yellow-600 transition">{{ ui.catalog }}</a>
         <span>/</span>
         <a href="{% url 'products:catalog' %}?category={{ product.category.slug }}" class="hover:text-yellow-600 transition">{{ product.category.name }}</a>
         <span>/</span>
@@ -80,8 +81,8 @@
                     </div>
                     <span class="font-bold text-gray-900 text-sm">{{ product.avg_rating }}</span>
                 </div>
-                <a href="#reviews" class="text-sm text-gray-500 hover:text-yellow-600 transition">{{ product.reviews_count }} отзывов</a>
-                <span class="text-sm text-gray-400">{{ product.views_count }} просмотров</span>
+                <a href="#reviews" class="text-sm text-gray-500 hover:text-yellow-600 transition">{{ product.reviews_count }} {{ ui.reviews_word }}</a>
+                <span class="text-sm text-gray-400">{{ product.views_count }} {{ ui.views_word }}</span>
             </div>
 
             <!-- Price -->
@@ -94,9 +95,9 @@
                     {% endif %}
                 </div>
                 {% if product.in_stock %}
-                <p class="text-green-600 font-semibold text-sm">✅ В наличии ({{ product.stock }} шт.)</p>
+                <p class="text-green-600 font-semibold text-sm">✅ {{ ui.in_stock }} ({{ product.stock }} {{ ui.pcs }})</p>
                 {% else %}
-                <p class="text-red-500 font-semibold text-sm">❌ Нет в наличии</p>
+                <p class="text-red-500 font-semibold text-sm">❌ {{ ui.out_of_stock }}</p>
                 {% endif %}
             </div>
 
@@ -112,7 +113,7 @@
                         <button type="button" onclick="changeQty(1)" class="px-4 py-3 text-gray-600 hover:bg-gray-50 font-bold text-lg transition">+</button>
                     </div>
                     <button type="submit" class="flex-1 bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-black text-lg py-3 px-6 rounded-xl transition-all hover:shadow-md">
-                        В корзину 🛒
+                        {{ ui.add_to_cart }} 🛒
                     </button>
                 </div>
             </form>
@@ -120,12 +121,12 @@
 
             <!-- SKU & Delivery info -->
             <div class="space-y-2 text-sm text-gray-500 mb-6">
-                <p>Артикул: <span class="font-mono text-gray-700">{{ product.sku }}</span></p>
+                <p>{{ ui.product_sku }}: <span class="font-mono text-gray-700">{{ product.sku }}</span></p>
                 <div class="flex items-center gap-2 text-green-700 bg-green-50 px-3 py-2 rounded-xl">
-                    🚚 <span>Бесплатная доставка при заказе от 1000₸</span>
+                    🚚 <span>{{ ui.free_delivery_from }}</span>
                 </div>
                 <div class="flex items-center gap-2 text-blue-700 bg-blue-50 px-3 py-2 rounded-xl">
-                    🔄 <span>Возврат в течение 14 дней</span>
+                    🔄 <span>{{ ui.return_14 }}</span>
                 </div>
             </div>
 
@@ -140,15 +141,15 @@
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 mb-12">
         <div class="flex border-b border-gray-100 overflow-x-auto" id="tab-nav">
             <button onclick="showTab('description')" class="tab-btn active px-6 py-4 text-sm font-bold whitespace-nowrap border-b-2 border-yellow-400 text-yellow-600">
-                Описание
+                {{ ui.description }}
             </button>
             {% if product.attributes.count %}
             <button onclick="showTab('attributes')" class="tab-btn px-6 py-4 text-sm font-bold whitespace-nowrap border-b-2 border-transparent text-gray-500 hover:text-gray-700 transition">
-                Характеристики
+                {{ ui.attributes }}
             </button>
             {% endif %}
             <button onclick="showTab('reviews')" class="tab-btn px-6 py-4 text-sm font-bold whitespace-nowrap border-b-2 border-transparent text-gray-500 hover:text-gray-700 transition" id="reviews-tab-btn">
-                Отзывы ({{ product.reviews_count }})
+                {{ ui.reviews }} ({{ product.reviews_count }})
             </button>
         </div>
 
@@ -187,7 +188,7 @@
                             </svg>
                             {% endfor %}
                         </div>
-                        <p class="text-sm text-gray-500 mt-1">{{ product.reviews_count }} отзывов</p>
+                        <p class="text-sm text-gray-500 mt-1">{{ product.reviews_count }} {{ ui.reviews_word }}</p>
                     </div>
                     <div class="flex-1 space-y-2">
                         {% for star_val in "5,4,3,2,1" %}
@@ -250,30 +251,30 @@
                     <p class="text-gray-600 text-sm leading-relaxed">{{ review.text }}</p>
                     {% if review.pros %}
                     <div class="mt-2">
-                        <span class="text-green-600 text-xs font-bold">✅ Достоинства: </span>
+                        <span class="text-green-600 text-xs font-bold">✅ {{ ui.pros }} </span>
                         <span class="text-gray-600 text-xs">{{ review.pros }}</span>
                     </div>
                     {% endif %}
                     {% if review.cons %}
                     <div class="mt-1">
-                        <span class="text-red-500 text-xs font-bold">❌ Недостатки: </span>
+                        <span class="text-red-500 text-xs font-bold">❌ {{ ui.cons }} </span>
                         <span class="text-gray-600 text-xs">{{ review.cons }}</span>
                     </div>
                     {% endif %}
                 </div>
                 {% empty %}
-                <p class="text-gray-500 text-sm text-center py-8">Пока нет отзывов. Будьте первым!</p>
+                <p class="text-gray-500 text-sm text-center py-8">{{ ui.no_reviews }}</p>
                 {% endfor %}
 
                 <!-- Review Form -->
                 {% if user.is_authenticated and not user_review %}
                 <div class="mt-6 bg-yellow-50 rounded-2xl p-6 border border-yellow-100">
-                    <h4 class="font-black text-gray-900 mb-4">Написать отзыв</h4>
+                    <h4 class="font-black text-gray-900 mb-4">{{ ui.write_review }}</h4>
                     <form method="post">
                         {% csrf_token %}
                         <div class="space-y-4">
                             <div>
-                                <label class="text-sm font-bold text-gray-700 mb-1 block">Оценка</label>
+                                <label class="text-sm font-bold text-gray-700 mb-1 block">{{ ui.rating }}</label>
                                 <div class="flex gap-2">
                                     {% for i in "12345" %}
                                     <label class="cursor-pointer">
@@ -286,20 +287,20 @@
                             {% for field in review_form %}
                             {% if field.name != 'rating' %}
                             <div>
-                                <label class="text-sm font-bold text-gray-700 mb-1 block">{{ field.label }}</label>
-                                {{ field }}
+                                <label class="text-sm font-bold text-gray-700 mb-1 block">{{ ui.form_labels|get_item:field.name|default:field.label }}</label>
+                                {% with placeholder=ui.form_placeholders|get_item:field.name %}{{ field|with_placeholder:placeholder }}{% endwith %}
                                 {% if field.errors %}<p class="text-red-500 text-xs mt-1">{{ field.errors.0 }}</p>{% endif %}
                             </div>
                             {% endif %}
                             {% endfor %}
-                            <button type="submit" class="btn-primary">Опубликовать отзыв</button>
+                            <button type="submit" class="btn-primary">{{ ui.publish_review }}</button>
                         </div>
                     </form>
                 </div>
                 {% elif not user.is_authenticated %}
                 <div class="mt-6 bg-gray-50 rounded-2xl p-6 text-center">
-                    <p class="text-gray-600 mb-3">Войдите, чтобы оставить отзыв</p>
-                    <a href="{% url 'users:login' %}?next={{ request.path }}" class="btn-primary">Войти</a>
+                    <p class="text-gray-600 mb-3">{{ ui.login_to_review }}</p>
+                    <a href="{% url 'users:login' %}?next={{ request.path }}" class="btn-primary">{{ ui.login }}</a>
                 </div>
                 {% endif %}
             </div>
@@ -309,7 +310,7 @@
     <!-- Similar Products -->
     {% if similar %}
     <section>
-        <h2 class="text-2xl font-black text-gray-900 mb-6">Похожие товары</h2>
+        <h2 class="text-2xl font-black text-gray-900 mb-6">{{ ui.similar_products }}</h2>
         <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {% for p in similar %}
             {% include "products/product_card.html" with product=p %}
