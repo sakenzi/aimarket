@@ -1,0 +1,86 @@
+{% extends "dashboard/base.html" %}
+{% load ui_extras %}
+
+{% block title %}{{ ui.add_product }}{% endblock %}
+{% block page_title %}{{ ui.add_product }}{% endblock %}
+
+{% block breadcrumb %}
+<p class="text-xs text-gray-400 mt-0.5">
+    <a href="{% url 'dashboard:products' %}" class="hover:text-yellow-600">{{ ui.items }}</a> / {{ ui.add_product }}
+</p>
+{% endblock %}
+
+{% block content %}
+<form method="post" enctype="multipart/form-data" class="max-w-4xl space-y-6">
+    {% csrf_token %}
+
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+        <h2 class="font-black text-gray-900 mb-5">{{ ui.product_info }}</h2>
+        <div class="grid md:grid-cols-2 gap-4">
+            {% for field in form %}
+            {% if field.name in "name,sku,category,brand,price,old_price,stock,weight" %}
+            <div>
+                <label class="text-sm font-bold text-gray-700 mb-1.5 block">
+                    {{ ui.product_form_labels|get_item:field.name|default:field.label }}{% if field.field.required %} *{% endif %}
+                </label>
+                {{ field }}
+                {% if field.errors %}<p class="text-red-500 text-xs mt-1">{{ field.errors.0 }}</p>{% endif %}
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+        <h2 class="font-black text-gray-900 mb-5">{{ ui.product_description }}</h2>
+        <div class="space-y-4">
+            {% for field in form %}
+            {% if field.name in "short_description,description" %}
+            <div>
+                <label class="text-sm font-bold text-gray-700 mb-1.5 block">
+                    {{ ui.product_form_labels|get_item:field.name|default:field.label }}{% if field.field.required %} *{% endif %}
+                </label>
+                {{ field }}
+                {% if field.errors %}<p class="text-red-500 text-xs mt-1">{{ field.errors.0 }}</p>{% endif %}
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+        <h2 class="font-black text-gray-900 mb-5">{{ ui.product_media_settings }}</h2>
+        <div class="space-y-4">
+            <div>
+                <label class="text-sm font-bold text-gray-700 mb-1.5 block">{{ ui.product_form_labels|get_item:'main_image' }}</label>
+                {{ form.main_image }}
+                {% if form.main_image.errors %}<p class="text-red-500 text-xs mt-1">{{ form.main_image.errors.0 }}</p>{% endif %}
+            </div>
+
+            <div class="flex flex-wrap gap-6">
+                <label class="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                    {{ form.is_active }} {{ ui.product_form_labels|get_item:'is_active' }}
+                </label>
+                <label class="flex items-center gap-2 text-sm font-semibold text-gray-700">
+                    {{ form.is_featured }} {{ ui.product_form_labels|get_item:'is_featured' }}
+                </label>
+            </div>
+        </div>
+    </div>
+
+    {% if form.non_field_errors %}
+    <div class="bg-red-50 text-red-700 text-sm p-4 rounded-xl border border-red-200">
+        {{ form.non_field_errors.0 }}
+    </div>
+    {% endif %}
+
+    <div class="flex gap-3">
+        <button type="submit" class="px-6 py-3 bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-black rounded-xl transition">
+            {{ ui.save_product }}
+        </button>
+        <a href="{% url 'dashboard:products' %}" class="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl transition">
+            {{ ui.cancel }}
+        </a>
+    </div>
+</form>
+{% endblock %}

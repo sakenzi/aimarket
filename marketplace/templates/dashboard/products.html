@@ -4,6 +4,13 @@
 {% block title %}{{ ui.items }}{% endblock %}
 {% block page_title %}{{ ui.items }}{% endblock %}
 
+{% block header_actions %}
+<a href="{% url 'dashboard:product_create' %}"
+   class="px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold rounded-xl text-sm transition">
+    {{ ui.add_product }}
+</a>
+{% endblock %}
+
 {% block content %}
 <!-- Filters -->
 <form method="get" class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 mb-6 flex flex-wrap gap-3 items-end">
@@ -66,7 +73,7 @@
                     </div>
                 </td>
                 <td class="px-5 py-3 text-gray-500 hidden md:table-cell">{{ product.category.name }}</td>
-                <td class="px-5 py-3 font-bold text-gray-900">{{ product.price|floatformat:0|intcomma }}₽</td>
+                <td class="px-5 py-3 font-bold text-gray-900">{{ product.price|floatformat:0|intcomma }}₸</td>
                 <td class="px-5 py-3">
                     <div class="flex items-center gap-2">
                         <input type="number" value="{{ product.stock }}" min="0"

@@ -65,7 +65,7 @@
                     <p class="text-xs text-gray-400">{{ order.user.email }}</p>
                 </td>
                 <td class="px-5 py-3 hidden md:table-cell text-gray-500">{{ order.items.count }} {{ ui.pcs }}</td>
-                <td class="px-5 py-3 font-black text-gray-900">{{ order.total|floatformat:0|intcomma }}₽</td>
+                <td class="px-5 py-3 font-black text-gray-900">{{ order.total|floatformat:0|intcomma }}₸</td>
                 <td class="px-5 py-3">
                     <span class="badge
                         {% if order.status == 'delivered' %}bg-green-100 text-green-700

@@ -35,8 +35,8 @@
                         <p class="text-xs text-gray-400 font-mono mt-0.5">{{ item.product_sku }}</p>
                     </div>
                     <div class="text-right shrink-0">
-                        <p class="font-bold text-gray-900">{{ item.get_total_price|floatformat:0|intcomma }}₽</p>
-                        <p class="text-xs text-gray-400">{{ item.quantity }} × {{ item.price|floatformat:0|intcomma }}₽</p>
+                        <p class="font-bold text-gray-900">{{ item.get_total_price|floatformat:0|intcomma }}₸</p>
+                        <p class="text-xs text-gray-400">{{ item.quantity }} × {{ item.price|floatformat:0|intcomma }}₸</p>
                     </div>
                 </div>
                 {% endfor %}
@@ -44,15 +44,15 @@
             <div class="px-6 py-4 bg-gray-50 border-t border-gray-100">
                 <div class="flex justify-between text-sm mb-1">
                     <span class="text-gray-500">{{ ui.items }}</span>
-                    <span>{{ order.subtotal|floatformat:0|intcomma }}₽</span>
+                    <span>{{ order.subtotal|floatformat:0|intcomma }}₸</span>
                 </div>
                 <div class="flex justify-between text-sm mb-2">
                     <span class="text-gray-500">{{ ui.delivery }}</span>
-                    <span>{% if order.delivery_cost == 0 %}{{ ui.free }}{% else %}{{ order.delivery_cost|floatformat:0|intcomma }}₽{% endif %}</span>
+                    <span>{% if order.delivery_cost == 0 %}{{ ui.free }}{% else %}{{ order.delivery_cost|floatformat:0|intcomma }}₸{% endif %}</span>
                 </div>
                 <div class="flex justify-between font-black text-lg">
                     <span>{{ ui.summary }}</span>
-                    <span>{{ order.total|floatformat:0|intcomma }}₽</span>
+                    <span>{{ order.total|floatformat:0|intcomma }}₸</span>
                 </div>
             </div>
         </div>

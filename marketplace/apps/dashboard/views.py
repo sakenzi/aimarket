@@ -9,9 +9,10 @@ from datetime import timedelta
 import json
 
 from apps.orders.models import Order, OrderStatusHistory
-from apps.products.models import Product, Category, Review
+from apps.products.models import Product, Category, Review, ProductImage
 from apps.users.models import User
 from apps.ai_chat.models import ChatSession
+from .forms import DashboardProductForm
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -196,6 +197,32 @@ def products_list(request):
         'section': 'products',
     }
     return render(request, 'dashboard/products.html', context)
+
+
+@staff_required
+def product_create(request):
+    if request.method == 'POST':
+        form = DashboardProductForm(request.POST, request.FILES)
+        if form.is_valid():
+            product = form.save()
+            image = form.cleaned_data.get('main_image')
+            if image:
+                ProductImage.objects.create(
+                    product=product,
+                    image=image,
+                    alt=product.name,
+                    is_main=True,
+                )
+            messages.success(request, 'Product created.')
+            return redirect('dashboard:products')
+    else:
+        form = DashboardProductForm()
+
+    context = {
+        'form': form,
+        'section': 'products',
+    }
+    return render(request, 'dashboard/product_form.html', context)
 
 
 @staff_required

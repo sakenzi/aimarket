@@ -12,6 +12,7 @@ urlpatterns = [
 
     # Products
     path('products/', views.products_list, name='products'),
+    path('products/add/', views.product_create, name='product_create'),
     path('products/<uuid:pk>/toggle/', views.product_toggle, name='product_toggle'),
     path('products/<uuid:pk>/stock/', views.product_update_stock, name='product_stock'),
 
